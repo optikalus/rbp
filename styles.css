@@ -1,0 +1,122 @@
+body {
+	font-family: Verdana, Helvetica, sans-serif;
+	color: Black;
+	line-height: 135%;
+	background: url(/messageboard/riceback.gif) repeat fixed;
+	/*background: url(http://www.f0e.net/images/tiling.gif) repeat fixed;*/
+	background-color: #ffffff;
+	font-size: x-small;	/* false value for WinIE4/5 */
+	voice-family: "\"}\"";	/* trick WinIE4/5 into thinking the rule is over */
+	voice-family: inherit;	/* recover from trick */
+	font-size: small;	/* intended value for better browsers */
+}
+
+html>body .body {
+  font-size: small;
+}
+
+a:link { color: #FF6600; }
+a:active { color: #FF0000; }
+a:visited { color: #CC6600; }
+
+.main {
+	color: Black;
+	line-height: 130%;
+	background-color: #ffffff;
+	border: #cccc99;
+	font-size: x-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: small;
+}
+
+html>body .main {
+  font-size: small;
+}
+
+.title {
+	font-weight: bold;
+	color: White;
+	background-color: #ff9933;
+	font-size: xx-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-small;
+}
+
+html>body .title {
+  font-size: x-small;
+}
+
+.newsdate {
+        color: Blue;
+        font-size: xx-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-small;
+}
+
+html>body .newsdate {
+  font-size: x-small;
+}
+
+.newstext {
+        color: Black;
+        font-size: xx-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-small;
+}
+
+html>body .newstext {
+  font-size: x-small;
+}
+
+.titlelarge {
+        color: White;
+	line-height: 135%;
+	background-color: #ff9933;
+        font-size: large;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-large;
+        font-weight: bold;
+}
+
+html>body .titlelarge {
+  font-size: large;
+}
+
+.menu {
+	background-color: #FFFFD6;
+	vertical-align: top;
+	width: 250px;
+}
+
+.info {
+	background-color: #FFFFFF;
+	vertical-align: top;
+}
+
+.borderoutline {
+	background-color: #CCCC99;
+}
+
+.smallselect {
+	font-size: xx-small;
+}
+
+.forminput,.smallselect {
+}
+
+.formsubmit {
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
+
+.captcha {
+  display: none;
+}
