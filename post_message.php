@@ -575,6 +575,15 @@ $threads = 0;
 
 $json = array();
 
+$sizes = array();
+$sizes[0] = 'xx-small';
+$sizes[1] = 'x-small';
+$sizes[2] = 'small';
+$sizes[3] = 'medium';
+$sizes[4] = 'large';
+$sizes[5] = 'x-large';
+$sizes[6] = 'xx-large';
+
 while ($posts = mysql_fetch_array($results)) {
 
   // test to see if current row is a new thread, increment $threads if so
@@ -610,23 +619,11 @@ while ($posts = mysql_fetch_array($results)) {
   if ($threads == $config[maxthreads])
     $lastnormalthread = $lastthread;
 
-  if ($threads <= $config[maxthreads]) {
 
-    if ($posts[id] == $posts[parent]) $display_date = ' - ' . $posts[date_sm];
-    else $display_date = null;
-
-    // don't feed the trolls
-    if ($posts[id] == $posts[parent] && $posts[message_author] == 'nasirichampang')
-      $parent_author = 'troll';
-
-    if ($parent_author == 'troll' && $posts[message_author] != 'nasirichampang')
-      $posts['message_subject'] = "Aren't you banned yet?";
-
-
-    $display_rate = null;
-    if ($posts[score] != 'null' || ($posts[type] != 'null' && $posts[type] != '')) {
-
-      switch ($posts[type]) {
+  // build the rate string (i.e. "Warning - Gross")
+  $display_rate = null;
+  if ($posts[score] != 'null' || ($posts[type] != 'null' && $posts[type] != '')) {
+    switch ($posts[type]) {
 	case 'warn-g':
 	  $posts[type] = "<b style='color: red; font-size: larger'>Warning</b> - Gross";
 	  break;
@@ -636,23 +633,27 @@ while ($posts = mysql_fetch_array($results)) {
 	case 'nsfw':
 	  $posts[type] = "<b style='color: red; font-size: larger'>NSFW</b>";
 	  break;
-      }
+	  }
 
-      $display_rate = " - <span style='font-size: smaller'>( ";
-      if ($posts[score] != 'null') $display_rate .= $posts[score];
-      if ($posts[score] != 'null' && $posts[type] != 'null' && $posts[type] != '') $display_rate .= ', ' . ucfirst($posts[type]);
-      if ($posts[score] == 'null') $display_rate .= ucfirst($posts[type]);
-      $display_rate .= ' )</span>';
-    }
+    $display_rate = " - <span style='font-size: smaller'>( ";
+    if ($posts[score] != 'null') $display_rate .= $posts[score];
+    if ($posts[score] != 'null' && $posts[type] != 'null' && $posts[type] != '') $display_rate .= ', ' . ucfirst($posts[type]);
+    if ($posts[score] == 'null') $display_rate .= ucfirst($posts[type]);
+    $display_rate .= ' )</span>';
+  }
 
-    $sizes = array();
-    $sizes[0] = 'xx-small';
-    $sizes[1] = 'x-small';
-    $sizes[2] = 'small';
-    $sizes[3] = 'medium';
-    $sizes[4] = 'large';
-    $sizes[5] = 'x-large';
-    $sizes[6] = 'xx-large';
+  // only show the date for the first post of the thread
+  if ($posts[id] == $posts[parent]) $display_date = ' - ' . $posts[date_sm];
+  else $display_date = null;
+
+  if ($threads <= $config[maxthreads]) {
+
+    // don't feed the trolls
+    if ($posts[id] == $posts[parent] && $posts[message_author] == 'nasirichampang')
+      $parent_author = 'troll';
+
+    if ($parent_author == 'troll' && $posts[message_author] != 'nasirichampang')
+      $posts['message_subject'] = "Aren't you banned yet?";
 
     fputs($fp,
 	  "<ul><li><a href='$locations[forum]?d=$posts[id]&amp;t=$posts[t]' title='$posts[date]'>$posts[message_subject]</a> ".
@@ -736,7 +737,7 @@ while ($posts = mysql_fetch_array($results)) {
     fputs($fp_lite,
 	  "<ul><li><a href='$locations[forum]?d=$posts[id]&amp;t=$posts[t]'>$posts[message_subject]</a> ".
 	  options($posts[link],$posts[video],$posts[image],$posts[body],$posts[message_author]).
-	  " - <b>$posts[message_author]</b> - $posts[date_sm]"
+	  " - <b>$posts[message_author]</b>$display_date$display_rate"
 	  );
   }
 
