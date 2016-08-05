@@ -272,7 +272,41 @@ class uploader {
 					$this->file["name"] = $this->file["name"] . $this->file["extention"];
 				}
 			}
-			
+
+      // read image to strip exif and perform other work
+      $image = imagecreatefromjpeg($this->file['tmp_name']);
+
+      $exif = exif_read_data($this->file['tmp_name']);
+
+      // resize image
+      if (stristr($this->file['type'], 'jpeg') && ($this->file['height'] >= 1600 || $this->file['width'] >= 1600)) {
+        if ($this->file['height'] > $this->file['width']) {
+          $new_height = 1600;
+          $new_width = $this->file['width'] / ($this->file['height'] / $new_height); 
+        } else { 
+          $new_width = 1600;
+          $new_height = $this->file['height'] / ($this->file['width'] / $new_width);
+        }
+        $image_p = imagecreatetruecolor($new_width, $new_height);
+        imagecopyresampled($image_p, $image, 0, 0, 0, 0, $new_width, $new_height, $this->file['width'], $this->file['height']);
+        $image = $image_p;
+      }
+
+      switch ($exif['Orientation']) {
+        case 3:
+          $image = imagerotate($image, 180, 0);
+          break;
+        case 6:
+          $image = imagerotate($image, -90, 0);
+          break;
+        case 8:
+          $image = imagerotate($image, 98, 0);
+          break;
+      }
+
+      // write exif stripped / resized image
+      imagejpeg($image, $this->file['tmp_name'], 90);
+
 			switch((int) $overwrite_mode) {
 				case 1: // overwrite mode
 					if (@copy($this->file["tmp_name"], $this->path . $this->file["name"])) {
