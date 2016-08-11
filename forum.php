@@ -373,7 +373,7 @@ Type:
 	    $youtube_video_id = null;
 	    $vimeo_video_id = null;
 	    if (preg_match('/youtube\.com\/watch\?.*v=(.+)/', $link['link_url'], $youtube_video_id)) {
-	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0"></iframe>';
+	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0"></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
 	    }
