@@ -500,10 +500,7 @@ $fp = fopen($locations[datfile],'w') or error("Unable to open $locations[datfile
 // create the forum_lite file
 $fp_lite = fopen($locations[datfile_lite],'w') or error("Unable to open $locations[datfile_lite] for writing",$config[admin_email],"Unable to open $locations[datfile_lite] for writing");
 
-// create the forum_neat file
-$fp_neat = fopen($locations[datfile_neat],'w') or error("Unable to open $locations[datfile_neat] for writing",$config[admin_email],"Unable to open $locations[datfile_neat] for writing");
-
-// create the forum_neat file
+// create the forum_json file
 $fp_json = fopen($locations[jsonfile],'w') or error("Unable to open $locations[jsonfile] for writing",$config[admin_email],"Unable to open $locations[jsonfile] for writing");
 
 // re-setup the table rotation scheme
@@ -603,10 +600,6 @@ while ($posts = mysql_fetch_array($results)) {
   // find difference between these arrays, returns an array
   if ($threads <= $config[maxthreads]) {
     fputs($fp,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts[thread])))));
-    fputs($fp_neat,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts[thread])))));
-/*    for ($i = 1; $i <= count(array_diff($lastthread,explode('.', $posts[thread]))); $i++) {
-      $xml->endElement();
-    }*/
   }
   if ($threads <= $config[maxthreadslite])
     fputs($fp_lite,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts[thread])))));
@@ -661,13 +654,6 @@ while ($posts = mysql_fetch_array($results)) {
 	  " - <b>$posts[message_author]</b>$display_date$display_rate"
 	  );
 
-# April 1st, 2006
-    fputs($fp_neat,
-	  "<ul><li><a href='$locations[forum]?d=$posts[id]&amp;t=$posts[t]' title='$posts[date]'><span style='font-size: ".$sizes[rand(0,6)]."'>$posts[message_subject]</span></a> ".
-	  "<span style='font-size: ".$sizes[rand(0,6)]."'>".options($posts[link],$posts[video],$posts[image],$posts[body],$posts[message_author])."</span>".
-	  " - <b><span style='font-size: ".$sizes[rand(0,6)]."'>$posts[message_author]</span></b><span style='font-size: ".$sizes[rand(0,6)]."'>$display_date</span>$display_rate"
-	  );
-
     $thispost = array(
 	't' => $posts['t'],
 	'id' => $posts['id'],
@@ -704,32 +690,6 @@ while ($posts = mysql_fetch_array($results)) {
     }
 
     array_push($json, $thispost);
-/*
-    $xml->startElement('thread');
-    $xml->writeAttribute('t', $posts['t']);
-    $xml->writeAttribute('id', $posts['id']);
-    $xml->writeAttribute('message_author', $posts['message_author']);
-    if ($posts['message_author_email'] != '') {
-      $xml->writeAttribute('message_author_email', $posts['message_author_email']);
-    }
-    $xml->writeAttribute('message_subject', $posts['message_subject']);
-    $xml->writeAttribute('date', $posts['date']);
-
-    if ($posts[link] == 'y')
-      $xml->writeAttribute('link', 'true');
-
-    if ($posts[video] == 'y')
-      $xml->writeAttribute('video', 'true');
-
-    if ($posts[image] == 'y')
-      $xml->writeAttribute('image', 'true');
-
-    if ($posts['message_body'] != '') {
-      $xml->startElement('message_body');
-      $xml->writeCData($posts['message_body']);
-      $xml->endElement();
-    }
-*/
 
   }
 
@@ -747,16 +707,8 @@ fputs($fp_json, json_encode($json));
 
 if (is_array($lastnormalthread)) {
   fputs($fp,str_repeat("</li></ul>",count($lastnormalthread)));
-  fputs($fp_neat,str_repeat("</li></ul>",count($lastnormalthread)));
-  for ($i = 1; $i <= count($lastnormalthread); $i++) {
-    //$xml->endElement();
-  }
 } else {
   fputs($fp,str_repeat("</li></ul>",count($lastthread)));
-  fputs($fp_neat,str_repeat("</li></ul>",count($lastthread)));
-  for ($i = 1; $i <= count($lastthread); $i++) {
-    //$xml->endElement();
-  }
 }
 
 if (is_array($lastlitethread))
@@ -766,14 +718,8 @@ else
 
 // close the forum file
 fclose($fp);
-fclose($fp_neat);
 fclose($fp_lite);
 fclose($fp_json);
-
-/*
-$xml->endElement();
-$xml->flush();
-*/
 
 // remove the lock
 unlink("$locations[datfile].lock");

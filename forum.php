@@ -85,11 +85,6 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   // make display_mode sticky
   setcookie('display_mode','1',0,'/');
 
- } elseif (isset($_GET['display_mode']) && $_GET['display_mode'] == 'neat') {
-
-  // make display_mode sticky
-  setcookie('display_mode','neat',time()+(60*60*24*365),'/');
-
 } elseif (isset($_GET['display_mode']) && $_GET['display_mode'] == 2) {
 
   // delete the display_mode cookie
@@ -478,8 +473,8 @@ Type:
 
   // add return to full mode and refresh link
   print "(<a href='forum.php'>Refresh</a>)\n";
-  print "(<a href='<?=$locations['search']?>'>Search</a>)\n";
-  print "(<a href='" . $locations['forum'] . "?display_mode=0'>Return to Full Mode</a>)\n";
+  print "(<a href='" . $locations['search'] . "'>Search</a>)\n";
+  print "(<a href='" . $locations['forum'] . "?display_mode=2'>Return to Full Mode</a>)\n";
 
   // Check for existing $datfile.lock
   if (file_exists($locations['datfile'] . ".lock")) {
@@ -508,19 +503,7 @@ Type:
     }
   }
 
-  if ((isset($_GET['display_mode']) && $_GET['display_mode'] == 'neat') ||
-         (isset($_COOKIE['display_mode']) && $_COOKIE['display_mode'] == 'neat')) {
-    #while (readfile($locations[datfile_neat]) === 0) {
-    #  usleep(500);
-    #}
-    readfile($locations['datfile_neat']);
-  } else {
-   //include($locations[datfile]);
-    #while (readfile($locations[datfile]) === 0) {
-    #  usleep(500);
-    #}
-    readfile($locations['datfile']);
-  }
+  readfile($locations['datfile']);
 
   display_form();
 
@@ -593,7 +576,7 @@ function display_header() {
 <?
   print "Now showing messages started from ".date('m/d/Y h:i:s A', time() - $config['displaytime'])." - ".date('m/d/Y h:i:s A')."\n";
 ?>
-    (<a href='<?=$locations['forum']?>?display_mode=1'>Go to Lite Mode</a>)<!-- (<a href='<?=$locations['forum']?>?display_mode=neat'>Go to Neat Mode</a>) !--><br /><br />
+    (<a href='<?=$locations['forum']?>?display_mode=1'>Go to Lite Mode</a>)<br /><br />
 <?
 
   $count = 0;
