@@ -386,7 +386,7 @@ Type:
           print '<br />';
         }
       }
-	  elseif (preg_match('(https?://)(www.)?((instagram.com\/p\/)|(instagr.am/p/))', $link['link_url'])) {
+	  elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
 	    $apiurl = 'https://api.instagram.com/oembed?url=';
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
