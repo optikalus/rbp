@@ -371,23 +371,6 @@ Type:
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
-<<<<<<< HEAD
-	    } elseif (preg_match('/^https?:\/\/twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)$/', $link['link_url'], $twitter_url)) {
-		  $apiurl = 'https://publish.twitter.com/oembed?url=';
-		  $ch = curl_init();
-		  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		  curl_setopt($ch, CURLOPT_URL,($apiurl . urlencode($link['link_url'])));
-		  $result=curl_exec($ch);
-		  curl_close($ch);
-		  $json = json_decode($result);
-		  if (isset($json))
-		  {
-			print $json->html;
-			print '<br />';
-		  }	
-		}
-=======
       } elseif (preg_match('/^https?:\/\/twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+$/', $link['link_url'])) {
         $apiurl = 'https://publish.twitter.com/oembed?url=';
         $ch = curl_init();
@@ -403,7 +386,6 @@ Type:
           print '<br />';
         }
       }
->>>>>>> refs/remotes/optikalus/master
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
 	    if (strlen($link['link_title']) > 0)
 	      print $link['link_title'];
