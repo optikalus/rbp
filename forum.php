@@ -478,7 +478,8 @@ Type:
 
   // add return to full mode and refresh link
   print "(<a href='forum.php'>Refresh</a>)\n";
-  print "(<a href='" . $locations['forum'] . "?display_mode=2'>Return to Full Mode</a>)\n";
+  print "(<a href='<?=$locations['search']?>'>Search</a>)\n";
+  print "(<a href='" . $locations['forum'] . "?display_mode=0'>Return to Full Mode</a>)\n";
 
   // Check for existing $datfile.lock
   if (file_exists($locations['datfile'] . ".lock")) {
