@@ -401,6 +401,22 @@ Type:
           print '<br />';
         }
       }
+	  elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
+	    $apiurl = 'https://api.instagram.com/oembed?url=';
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_URL,($apiurl . $link['link_url']));
+		$result=curl_exec($ch);
+		curl_close($ch);
+		$json = json_decode($result);
+		if (isset($json))
+		{
+			print $json->html;
+			print '<br />';
+		}
+	  }
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
 	    if (strlen($link['link_title']) > 0)
 	      print $link['link_title'];
