@@ -525,7 +525,7 @@ $query = "select $tablename.id,$tablename.parent,$tablename.thread,$tablename.me
 	 "case when $tablename.message_body = '' then 'n' else 'y' end as body, $tablename.message_body ".
 	 "from $tablename ".
 	 "where unix_timestamp($tablename.date) > (unix_timestamp(now()) - $config[displaytime]) ".
-	 "order by $tablename.parent desc,$tablename.thread asc limit $config[maxrows]";
+	 "order by $tablename.parent desc,$tablename.thread asc limit $config[maxrows]"; 
 
 // see if we need to bond another table
 if (($config[rotate_tables] == 'daily' && date('mdy',time() - $config[displaytime]) != date('mdy')) ||
