@@ -379,7 +379,7 @@ if (isset($message_link_url) && is_array($message_link_url)) {
       $youtube_video_id = null;
       $embed_string = null;
 
-      if (preg_match('/youtube\.com\/watch\?v=(.+)/', $link_url, $youtube_video_id)) {
+      if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link_url, $youtube_video_id)) {
 
 	//$embed_string = '<br /><object width="640" height="385"><param name="movie" value="http://www.youtube.com/v/'.escape($youtube_video_id[1]).'&rel=1"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.escape($youtube_video_id[1]).'&rel=1" type="application/x-shockwave-flash" wmode="transparent" width="640" height="385"></embed></object><br />';
 
