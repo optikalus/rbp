@@ -330,12 +330,22 @@ Type:
 	while ($image = mysql_fetch_array($images)) {
 	  if (strlen($image['image_url']) > 0) {
 	    $gfycat_data_id = null;
-            if (preg_match('/gfycat\.com\/(.+?)\.webm*/', $image['image_url'], $gfycat_data_id)) {
-?>
-<script type="text/javascript" src="https://assets.gfycat.com/gfycat.js"></script>
-<?php
-	      echo '<img class="gfyitem" data-id="' , $gfycat_data_id[1] , '" /><br /><br />' , "\n";
-	    } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
+		if (preg_match('gfycat\.com\/(\w*)', $image['image_url'], $gfycat_data_id)) {
+		$apiurl = 'http://gfycat.com/cajax/oembed/';
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_URL,($apiurl . $gfycat_data_id[1]));
+		$result=curl_exec($ch);
+		curl_close($ch);
+		$json = json_decode($result);
+		if (isset($json))
+		{
+			print $json->html;
+			print '<br />';
+		}
+	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $image['image_url'] , "' type='video/mp4'></video><br /><a href='" , $image['image_url'] , "'>source</a><br /><br />\n";
       } elseif (preg_match('/imgur.com\/(.+?)\.(gifv|webm)$/i', $image['image_url'], $gifv_filename)) {
         echo "<blockquote class='imgur-embed-pub' lang='en' data-id='" , $gifv_filename[1] , "'></blockquote><script async src='//s.imgur.com/min/embed.js' charset='utf-8'></script><br /><br />\n";
