@@ -330,7 +330,7 @@ Type:
 	while ($image = mysql_fetch_array($images)) {
 	  if (strlen($image['image_url']) > 0) {
 	    $gfycat_data_id = null;
-		if (preg_match('gfycat\.com\/(\w*)', $image['image_url'], $gfycat_data_id)) {
+		if (preg_match('/gfycat\.com\/(\w*)/', $image['image_url'], $gfycat_data_id)) {
 		$apiurl = 'http://gfycat.com/cajax/oembed/';
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
