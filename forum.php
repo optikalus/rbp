@@ -377,6 +377,7 @@ Type:
 	  if (strlen($link['link_url']) > 0) {
 	    $youtube_video_id = null;
 	    $vimeo_video_id = null;
+		$xkcd_data_id = null;
       if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link['link_url'], $youtube_video_id)) {
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
@@ -410,7 +411,22 @@ Type:
           print $json->html;
           print '<br />';
         }
-      }
+      }	elseif (preg_match('/(http[s]*:\/\/[www.]*xkcd\.com\/)([\d]*)/',  $link['link_url'] , $xkcd_data_id)) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_URL,('http://xkcd.com/' . $xkcd_data_id[2] . '/info.0.json'));
+		$result=curl_exec($ch);
+		curl_close($ch);
+		$json = json_decode($result);
+		if (isset($json))
+		{
+			print 'Title: ' . $json->title . '<br />';
+			print '<img src="' . $json->img . '" />' . '<br />';
+			print 'Alt: ' . $json->alt . '<br />';
+		}
+	  }
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
 	    if (strlen($link['link_title']) > 0)
 	      print $link['link_title'];
