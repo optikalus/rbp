@@ -383,7 +383,7 @@ Type:
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
-      } elseif (preg_match('/^(https?:\/\/twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+).+$/', $link['link_url'], $twitter_url)) {
+      } elseif (preg_match('/^(https?:\/\/twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+).*$/', $link['link_url'], $twitter_url)) {
         $apiurl = 'https://publish.twitter.com/oembed?url=';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
