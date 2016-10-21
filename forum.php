@@ -378,16 +378,17 @@ Type:
 	    $youtube_video_id = null;
 	    $vimeo_video_id = null;
 		$xkcd_data_id = null;
+		$twitter_url = null;
       if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link['link_url'], $youtube_video_id)) {
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
-      } elseif (preg_match('/^https?:\/\/twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+.+$/', $link['link_url'])) {
+      } elseif (preg_match('/^(https?:\/\/twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+).+$/', $link['link_url'], $twitter_url)) {
         $apiurl = 'https://publish.twitter.com/oembed?url=';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_URL,($apiurl . urlencode($link['link_url'])));
+        curl_setopt($ch, CURLOPT_URL,($apiurl . urlencode($twitter_url[1])));
         $result=curl_exec($ch);
         curl_close($ch);
         $json = json_decode($result);
