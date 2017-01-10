@@ -427,7 +427,7 @@ Type:
 			print '<img src="' . $json->img . '" />' . '<br />';
 			print 'Alt: ' . $json->alt . '<br />';
 		}
-	  }	elseif (preg_match('/https?:\/\/.+facebook.com/.+/',  $link['link_url'])) {
+	  }	elseif (preg_match('/https?:\/\/.+facebook\.com\/.+/',  $link['link_url'])) {
 		$ch = curl_init();
 		$ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
 		curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
