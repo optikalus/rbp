@@ -441,6 +441,7 @@ Type:
 		if (isset($json))
 		{
 			print $json->html;
+			print '<br />';
 		}
 	  }
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
