@@ -427,6 +427,21 @@ Type:
 			print '<img src="' . $json->img . '" />' . '<br />';
 			print 'Alt: ' . $json->alt . '<br />';
 		}
+	  }	elseif (preg_match('/https?:\/\/.+facebook.com/.+/',  $link['link_url'])) {
+		$ch = curl_init();
+		$ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
+		curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_URL,('https://www.facebook.com/plugins/post/oembed.json/?url=' . urlencode($link['link_url'])));
+		$result=curl_exec($ch);
+		curl_close($ch);
+		$json = json_decode($result);
+		if (isset($json))
+		{
+			print $json->html;
+		}
 	  }
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
 	    if (strlen($link['link_title']) > 0)
