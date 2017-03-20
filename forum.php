@@ -353,6 +353,8 @@ Type:
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $image['image_url'] , "' type='video/webm'></video><br /><a href='" , $image['image_url'] , "'>source</a><br /><br />\n";
 	    } elseif (preg_match('/^(.+?)\.gifv$/i', $image['image_url'], $gifv_filename)) {
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $gifv_filename[1] , ".webm' type='video/webm'></video><br /><a href='", $image['image_url'] ,"'>source</a><br /><br />\n";
+      } elseif (preg_match('/^https?:\/\/rbp\.f0e\.net\/(.+)$/i', $image['image_url'], $rel_image)) {
+        echo "<img src='//rbp.f0e.net/" , $rel_image[1] , "' alt ='' /><br /><br />\n";
 	    } else
 	      echo "<img src='" . $image['image_url'] . "' alt='' /><br /><br />\n";
 	  }
