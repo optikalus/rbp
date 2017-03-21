@@ -330,13 +330,13 @@ Type:
 	while ($image = mysql_fetch_array($images)) {
 	  if (strlen($image['image_url']) > 0) {
 	    $gfycat_data_id = null;
-		if (preg_match('/gfycat\.com\/(\w*)/', $image['image_url'], $gfycat_data_id)) {
-		$apiurl = 'http://gfycat.com/cajax/oembed/';
+		if (preg_match('/gfycat\.com\/\w*/', $image['image_url'])) {
+    $apiurl = 'https://api.gfycat.com/v1/oembed?url=';
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_URL,($apiurl . $gfycat_data_id[1]));
+		curl_setopt($ch, CURLOPT_URL,($apiurl . $image['image_url']));
 		$result=curl_exec($ch);
 		curl_close($ch);
 		$json = json_decode($result);
