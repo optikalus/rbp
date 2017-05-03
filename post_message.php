@@ -121,13 +121,22 @@ if ($config['allow_tor'] === false) {
 
 // image verification
 if (!isset($_COOKIE[cookie_name]) && !isset($_SERVER['HTTP_X_IS_APP'])) {
-  require_once("b2evo_captcha.config.php");
-  require_once("b2evo_captcha.class.php");
-  $captcha = new b2evo_captcha($CAPTCHA_CONFIG);
-  if (!$captcha->validate_submit($_POST["captcha_image"], $_POST["captcha_verify"])) {
-    print "Invalid image verification response. Please <a href='#' onclick='history.go(-1)'>try again</a>.\n";
+
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $config['recaptcha_url'] . '?secret=' . $config['recaptcha_secret'] . '&response=' . $_POST['g-recaptcha-response'] . '&remoteip=' . $_SERVER['REMOTE_ADDR']);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+  $verify = curl_exec($ch);
+  curl_close($ch);
+
+  $result = json_decode($verify, true);
+  if (!$result['success'])
+  {
+    print "Please <a href='#' onClick='history.go(-1)'>go back</a> and re-enter your reCAPTCHA.";
     exit();
   }
+
 }
 
 // no posts w/ <a href

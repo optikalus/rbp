@@ -810,14 +810,11 @@ function display_form($parent=null,$t=null,$thread=null) {
   </tr>
 <?
   if (!isset($_COOKIE['cookie_name'])) {
-    require_once("b2evo_captcha.config.php");
-    require_once("b2evo_captcha.class.php");
-    $captcha = new b2evo_captcha($CAPTCHA_CONFIG);
-    $captcha_image = $captcha->get_b2evo_captcha();
 ?>
   <tr>
     <td align="right" valign="top">Vaildate:</td>
-    <td><img src="<?=$captcha_image?>" /><br /><input type="hidden" name="captcha_image" value="<?=$captcha_image?>" /><input type="text" name="captcha_verify" class="forminput" /></td>
+    <td><div class="g-recaptcha" data-sitekey="<?=$config['recaptcha_key']?>"></div></td>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
   </tr>
 <? } ?>
 </table>
