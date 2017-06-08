@@ -615,7 +615,7 @@ function display_header() {
   global $config;
 
 ?>
-<table width='100%' border='0' cellpadding='0' cellspacing='0'>
+<table width='100%' border='0' cellpadding='0' cellspacing='0' id='boardheader'>
   <tr>
     <td class='borderoutline'>
 <table width='100%' border='0' cellpadding='4' cellspacing='1'>
