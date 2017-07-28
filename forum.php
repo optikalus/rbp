@@ -342,7 +342,7 @@ Type:
 		$json = json_decode($result);
 		if (isset($json))
 		{
-			print $json->html;
+			print '<div style="height: ' . $json->height . 'px; width: ' . $json->width . 'px">' . $json->html . '</div>';
 			print '<br />';
 		}
 	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
