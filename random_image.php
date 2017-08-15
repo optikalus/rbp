@@ -60,7 +60,7 @@ if ($config[auth_required] == true) {
 
 <?
 
-$query = 'select * from rbp_images order by rand() limit 100';
+$query = 'select * from ' . $locations['images_table'] . ' order by rand() limit 100';
 
 $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
 

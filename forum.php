@@ -809,7 +809,7 @@ function display_form($parent=null,$t=null,$thread=null) {
     <td><select name='warning' style='font-size: smaller'><option value=''>None</option><option value='warn-g'>Warning - Gross</option><option value='warn-n'>Warning - Nudity</option><option value="nsfw">NSFW</option></select></td>
   </tr>
 <?
-  if (!isset($_COOKIE['cookie_name'])) {
+  if (!isset($_COOKIE['cookie_name']) && $config['require_captcha'] === true) {
 ?>
   <tr>
     <td align="right" valign="top">Vaildate:</td>

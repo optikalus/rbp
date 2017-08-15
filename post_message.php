@@ -120,7 +120,7 @@ if ($config['allow_tor'] === false) {
 }
 
 // image verification
-if (!isset($_COOKIE[cookie_name]) && !isset($_SERVER['HTTP_X_IS_APP'])) {
+if (!isset($_COOKIE[cookie_name]) && !isset($_SERVER['HTTP_X_IS_APP']) && $config['require_captcha'] === true) {
 
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $config['recaptcha_url'] . '?secret=' . $config['recaptcha_secret'] . '&response=' . $_POST['g-recaptcha-response'] . '&remoteip=' . $_SERVER['REMOTE_ADDR']);
@@ -478,7 +478,6 @@ ignore_user_abort(true);
 // create a lock
 touch("$locations[datfile].lock");
 
-/*
 // increment the counter
 $count = 0;
 
@@ -492,10 +491,10 @@ if (file_exists($locations[counter])) {
 // reset the counter if it's mtime is not today (new day)
 if (file_exists($locations[counter]) && date('m d y') != date('m d y', filemtime($locations[counter])))
   $count = 0;
-*/
+
 // write count + 1
 $fp = fopen($locations[counter],'w');
-fwrite($fp,$insert_id);
+fwrite($fp,$count + 1);
 fclose($fp);
 
 // update the last post
@@ -644,9 +643,16 @@ while ($posts = mysql_fetch_array($results)) {
     $display_rate .= ' )</span>';
   }
 
-  // only show the date for the first post of the thread
-  if ($posts[id] == $posts[parent]) $display_date = ' - ' . $posts[date_sm];
-  else $display_date = null;
+  if ($config['always_display_date_full'])
+    $display_date = ' - ' . $posts['date'];
+  elseif ($config['always_display_date_small'])
+    $display_date = ' - ' . $posts['date_sm'];
+  else
+  {
+    // only show the date for the first post of the thread
+    if ($posts[id] == $posts[parent]) $display_date = ' - ' . $posts[date_sm];
+    else $display_date = null;
+  }
 
   if ($threads <= $config[maxthreads]) {
 
