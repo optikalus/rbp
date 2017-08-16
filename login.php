@@ -5,6 +5,14 @@
 // include the configuration file
 require('config.inc.php');
 
+// begin a session
+session_start();
+
+if (isset($_SESSION['username']) && isset($_SESSION['password'])) {
+  header('Location: ' . $locations['forum']);
+  exit();
+}
+
 // make sure we received all the form values
 if (!isset($_POST[username]) || !isset($_POST[password])) {
   require('login.inc.php');
@@ -16,9 +24,6 @@ if (!isset($mysql_link)) {
   $mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
   mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
 }
-
-// begin a session
-session_start();
 
 // validate the username / password
 $query = "select username, level from $locations[auth_table] where username = '".escape($_POST[username])."' and password = md5('".escape($_POST[password])."')";
