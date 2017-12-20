@@ -167,7 +167,7 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 
   // set up the DB connection
   if (!isset($mysqli_link)) {
-    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
+    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
   }
 
   // preset the table name
@@ -583,7 +583,7 @@ Type:
 
     // establish a connection with the database or notify an admin with the error string
     if (!isset($mysqli_link)) {
-      $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
+      $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
     }
 
     $query = "select username from " . $locations['auth_table'] . " order by username";
