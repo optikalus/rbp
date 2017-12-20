@@ -24,9 +24,8 @@ header('Pragma: no-cache');
 if ($config['auth_required'] == true || isset($_REQUEST['needauth'])) {
 
   // establish a connection with the database or notify an admin with the error string
-  if (!isset($mysql_link)) {
-    $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-    mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+  if (!isset($mysqli_link)) {
+    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
   }
 
   // begin a session
@@ -34,8 +33,8 @@ if ($config['auth_required'] == true || isset($_REQUEST['needauth'])) {
 
   if (isset($_SESSION['username']) && isset($_SESSION['password'])) {
     $query = "select username from " . $locations['auth_table'] . " where username = '" . $_SESSION['username'] . "' and password = '" . $_SESSION['password'] . "'";
-    $result = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -167,9 +166,9 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numeric($_GET['t'])) {
 
   // set up the DB connection
-  if (!isset($mysql_link)) {
-    $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-    mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+  if (!isset($mysqli_link)) {
+    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
+    mysqli_select_db($config['db_name'],$mysqli_link) or error($config['db_errstr'],$config['admin_email'],"mysqli_select_db(" . $config['db_name'] . ")\n".mysqli_error());
   }
 
   // preset the table name
@@ -182,11 +181,11 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 	   "from $tablename ".
 	   "where id = " . $_GET['d'];
 
-  $result = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+  $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-  if (mysql_num_rows($result) == 1) {
+  if (mysqli_num_rows($result) == 1) {
 
-    $post = mysql_fetch_array($result);
+    $post = mysqli_fetch_array($result);
 
 ?>
 <table width='100%' border='0' cellpadding='0' cellspacing='0'>
@@ -222,9 +221,9 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 
     // add authentication tag
     $query = "select '1' from " . $locations['auth_posts_table'] . " where id = '" . $_GET['d'] . "' and t = '" . $_GET['t'] . "'";
-    $result = mysql_query($query, $mysql_link);
+    $result = mysqli_query($mysqli_link, $query);
 
-    if (mysql_num_rows($result) == 1)
+    if (mysqli_num_rows($result) == 1)
       print "<b>This post has been authenticated.</b><br />\n";
 
     print "</td><td align='right'>\n";
@@ -232,13 +231,13 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
     // add flagging stuff here:
 
     $query = "select score, type from " . $locations['flags_table'] . " where id = '" . $post['id'] . "' and t = '" . $_GET['t'] . "' order by votes desc limit 1";
-    $votes_res = mysql_query($query, $mysql_link);
+    $votes_res = mysqli_query($mysqli_link, $query);
 
     $vote_cur = null;
     $vote_type_preset = null;
 
-    if (mysql_num_rows($votes_res) > 0) {
-      $votes = mysql_fetch_array($votes_res);
+    if (mysqli_num_rows($votes_res) > 0) {
+      $votes = mysqli_fetch_array($votes_res);
       $vote_type_preset = $votes['type'];
       $votes['type'] = ucfirst($votes['type']);
       switch($votes['type']) {
@@ -303,10 +302,10 @@ Type:
 	       "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
 	       "from $tablename where $tablename.id = '$reply_id'";
 
-      $reply = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $reply = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($reply) == 1) {
-	$reply = mysql_fetch_array($reply);
+      if (mysqli_num_rows($reply) == 1) {
+	$reply = mysqli_fetch_array($reply);
 	print "In Reply to: <a href='" . $locations['forum'] . "?d=" . $reply['id'] . "&amp;t=" . $_GET['t'] . "'>" . $reply['message_subject'] . "</a> posted by " . $reply['message_author'] . " on " . $reply['date'] . "<br />\n";
       }
 
@@ -324,10 +323,10 @@ Type:
 	       "from " . $locations['images_table'] . " " .
 	       "where " . $locations['images_table'] . ".id = '" . $post['id'] . "' and " . $locations['images_table'] . ".t = '" . $_GET['t'] . "'";
 
-      $images = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $images = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($images) > 0) {
-	while ($image = mysql_fetch_array($images)) {
+      if (mysqli_num_rows($images) > 0) {
+	while ($image = mysqli_fetch_array($images)) {
 	  if (strlen($image['image_url']) > 0) {
 	    $gfycat_data_id = null;
 		if (preg_match('/gfycat\.com\/\w*/', $image['image_url'])) {
@@ -372,10 +371,10 @@ Type:
 	       "from " . $locations['links_table'] . " ".
 	       "where " . $locations['links_table'] . ".id = '" . $post['id'] . "' and " . $locations['links_table'] . ".t = '" . $_GET['t'] . "'";
 
-      $links = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $links = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($links) > 0) {
-	while ($link = mysql_fetch_array($links)) {
+      if (mysqli_num_rows($links) > 0) {
+	while ($link = mysqli_fetch_array($links)) {
 	  if (strlen($link['link_url']) > 0) {
 	    $youtube_video_id = null;
 	    $vimeo_video_id = null;
@@ -478,14 +477,14 @@ Type:
 	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' ".
 	     "order by $tablename.parent desc,$tablename.thread asc";
 
-    $replies = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+    $replies = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-    if (mysql_num_rows($replies) > 0) {
+    if (mysqli_num_rows($replies) > 0) {
 
       print "<ul>\n";
 
       $lastthread = array();
-      while ($reply = mysql_fetch_array($replies)) {
+      while ($reply = mysqli_fetch_array($replies)) {
 
 	// find difference between these arrays, returns an array
   	print str_repeat('</li></ul>',count(array_diff($lastthread,explode('.',$reply['thread']))));
@@ -584,22 +583,22 @@ Type:
   if ($config['show_users'] === true) {
 
     // establish a connection with the database or notify an admin with the error string
-    if (!isset($mysql_link)) {
-      $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-      mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+    if (!isset($mysqli_link)) {
+      $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
+      mysqli_select_db($config['db_name'],$mysqli_link) or error($config['db_errstr'],$config['admin_email'],"mysqli_select_db(" . $config['db_name'] . ")\n".mysqli_error());
     }
 
     $query = "select username from " . $locations['auth_table'] . " order by username";
-    $users = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+    $users = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-    if (mysql_num_rows($users) > 0) {
+    if (mysqli_num_rows($users) > 0) {
 
       print "<br />Current user list: ";
 
       $i = 1;
-      while ($user = mysql_fetch_array($users)) {
+      while ($user = mysqli_fetch_array($users)) {
 	print " " . $user['username'];
-	if ($i != mysql_num_rows($users)) print ',';
+	if ($i != mysqli_num_rows($users)) print ',';
 	$i++;
       }
 

@@ -6,8 +6,7 @@
 require('config.inc.php');
 
 // establish a connection with the database or notify an admin with the error string
-$mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 
 $gawkerstyle = (preg_match("/^http:\/\/rbpgawker.f0e.net/", $_SERVER['HTTP_REFERER']) ? true : false);
 
@@ -19,8 +18,8 @@ if ($config[auth_required] == true) {
 
   if (isset($_SESSION[username]) && isset($_SESSION[password])) {
     $query = "select username from $locations[auth_table] where username = '$_SESSION[username]' and password = '$_SESSION[password]'";
-    $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link,$query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -251,7 +250,7 @@ if (isset($_REQUEST[keyword]) || isset($_REQUEST[finduser]) ||
     $tablename = $locations[posts_table].'_'.$t;
 
     // if the table exists...
-    if (mysql_query("select count(id) from $tablename",$mysql_link) && $where != '') {
+    if (mysqli_query($mysqli_link,"select count(id) from $tablename") && $where != '') {
 
       if ($i != 0)
 	$query .= ' union ';
@@ -270,14 +269,14 @@ if (isset($_REQUEST[keyword]) || isset($_REQUEST[finduser]) ||
 
     $query .= " order by date2 desc";
 
-    $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+    $result = mysqli_query($mysqli_link,$query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
-    print "Your search returned <b>".mysql_num_rows($result)."</b> record(s).<br /><br />\n";
+    print "Your search returned <b>".mysqli_num_rows($result)."</b> record(s).<br /><br />\n";
 
     print "<ul>\n";
 
-    if (mysql_num_rows($result) > 0) {
-      while ($row = mysql_fetch_array($result)) {
+    if (mysqli_num_rows($result) > 0) {
+      while ($row = mysqli_fetch_array($result)) {
 	if ($gawkerstyle === true)
 	  print "<li><a href='http://rbpgawker.f0e.net/#!$row[t]$row[parent]'>$row[message_subject]</a> - <b>$row[message_author]</b> - $row[date]</li>\n";
 	else

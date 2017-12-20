@@ -213,8 +213,7 @@ if (strlen($message_author) < 1 || strlen($message_subject) < 1 ||
 }
 
 // establish a connection with the database or notify an admin with the error string
-$mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 
 // handle authentication if necessary
 $authenticated = false;
@@ -225,8 +224,8 @@ if ($config[auth_required] == true || isset($_COOKIE[auth])) {
 
   if (isset($_SESSION[username]) && isset($_SESSION[password])) {
     $query = "select username from $locations[auth_table] where username = '$_SESSION[username]' and password = '$_SESSION[password]'";
-    $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -260,16 +259,17 @@ if ($config[auth_post_required] == true) {
   if (isset($_POST[username]) && isset($_POST[password])) {
 
     $query = "select user_id, md5(concat(user_id, username, password)) as authkey from $locations[auth_users_table] where username = '$_POST[username]' and password = md5('$_POST[password]') and active = 'y' and queued = 'n'";
-    $result = mysql_query($query, $mysql_link);
+    $result = mysqli_query($mysqli_link, $query);
 
     // authorized
-    if (mysql_num_rows($result) === 1) {
+    if (mysqli_num_rows($result) === 1) {
 
-      $_SESSION[uid] = mysql_result($result, 0, 'user_id');
-      $_SESSION[authkey] = mysql_result($result, 0, 'authkey');
+      $auth = mysqli_fetch_array($result);
+      $_SESSION[uid] = $auth['user_id'];
+      $_SESSION[authkey] = $auth['authkey'];
 
       $query = "update $locations[auth_users_table] set last_login = now(), post_count = post_count + 1 where user_id = '$_SESSION[uid]'";
-      mysql_query($query, $mysql_link);
+      mysqli_query($mysqli_link, $query);
 
     // not authorized
     } else {
@@ -281,11 +281,12 @@ if ($config[auth_post_required] == true) {
   } else {
 
     $query = "select user_id, md5(concat(user_id, username, password)) as authkey from $locations[auth_users_table] where user_id = '$_SESSION[uid]' and active = 'y' and queued = 'n'";
-    $result = mysql_query($query, $mysql_link);
+    $result = mysqli_query($mysqli_link, $query);
 
-    if (mysql_num_rows($result) === 1) {
+    if (mysqli_num_rows($result) === 1) {
 
-      if (mysql_result($result, 0, 'authkey') != $_SESSION[authkey]) {
+      $auth = mysqli_fetch_array($result);
+      if ($auth['authkey'] != $_SESSION['authkey']) {
 
 	// invalid session
 	session_destroy();
@@ -294,7 +295,7 @@ if ($config[auth_post_required] == true) {
       } else {
 
 	$query = "update $locations[auth_users_table] set last_login = now(), post_count = post_count + 1 where user_id = '$_SESSION[uid]'";
-	mysql_query($query, $mysql_link);
+	mysqli_query($mysqli_link, $query);
 
       }
 
@@ -319,32 +320,32 @@ $tablename = $locations[posts_table].'_'.$t;
 // did troll try to change their IP?
 if ($_COOKIE['trolololol']) {
   $query = "select ip from trolls where ip = '" . $remote_addr . "'";
-  $result = mysql_query($query, $mysql_link);
-  if (mysql_num_rows($result) == 0) {
+  $result = mysqli_query($mysqli_link, $query);
+  if (mysqli_num_rows($result) == 0) {
     $query = "insert into trolls (ip, name, first_troll, last_troll, num_fed, fed_num) values ('" . $remote_addr . "', '" . $message_author . "', now(), now(), 1, 0)";
-    mysql_query($query, $mysql_link);
+    mysqli_query($mysqli_link, $query);
   }
 }
 
 // is thread a troll?
 if ($thread != '') {
   $query = "select ip from $tablename where thread = '" . $thread . "' and message_author = '<font color=\"teal\">Troll</font>'";
-  $result = mysql_query($query, $mysql_link);
-  if (mysql_num_rows($result) > 0) {
-    $query = "select ip from trolls where ip = '" . mysql_result($result, 0, 'ip') . "'";
-    $trollres = mysql_query($query, $mysql_link);
-    if (mysql_num_rows($trollres) > 0) {
+  $result = mysqli_query($mysqli_link, $query);
+  if (mysqli_num_rows($result) > 0) {
+    $query = "select ip from trolls where ip = '" . mysqli_result($result, 0, 'ip') . "'";
+    $trollres = mysqli_query($mysqli_link, $query);
+    if (mysqli_num_rows($trollres) > 0) {
       // don't feed the trolls!
-      $query = "update trolls set fed_num = fed_num + 1 where ip = '" . mysql_result($result, 0, 'ip') . "'";
-      mysql_query($query, $mysql_link);
+      $query = "update trolls set fed_num = fed_num + 1 where ip = '" . mysqli_result($result, 0, 'ip') . "'";
+      mysqli_query($mysqli_link, $query);
       $query = "select * from trolls where ip = '" . $remote_addr . "'";
-      $result = mysql_query($query, $mysql_link);
-      if (mysql_num_rows($result) > 0) {
+      $result = mysqli_query($mysqli_link, $query);
+      if (mysqli_num_rows($result) > 0) {
 	$query = "update trolls set num_fed = num_fed + 1, last_troll = now() where ip = '" . $remote_addr . "'";
-	mysql_query($query, $mysql_link);
+	mysqli_query($mysqli_link, $query);
       } else {
 	$query = "insert into trolls (ip, name, first_troll, last_troll, num_fed, fed_num) values ('" . $remote_addr . "', '" . $message_author . "', now(), now(), 1, 0)";
-        mysql_query($query, $mysql_link);
+        mysqli_query($mysqli_link, $query);
       }
     } // end troll
     setcookie('trolololol','true',time()+(60*60*24*30),'/');
@@ -359,19 +360,21 @@ if (isset($_SESSION[uid]))
 // insert the post
 $query = "insert into $tablename (message_author,message_author_email,message_subject,message_body,date,ip,user_id) ".
 	 "values ('".escape(alter_username($message_author))."','".escape($message_author_email)."','".escape($message_subject)."','".escape($message_body)."',now(),'$remote_addr',nullif('$user_id',''))";
-mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
-$insert_id = mysql_insert_id();
+$insert_id = mysqli_insert_id($mysqli_link);
 
 // preset the link/image enum
 $link = 'n';
 $image = 'n';
 
+/*
 // insert the auth_post id
 if ($authenticated === true && isset($_SESSION[level]) && $_SESSION[level] == 'admin') {
   $query = "insert into $locations[auth_posts_table] (id, t) values ('$insert_id', '$t')";
-  mysql_query($query, $mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+  mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 }
+*/
 
 // insert the link url
 if (isset($message_link_url) && is_array($message_link_url)) {
@@ -394,7 +397,7 @@ if (isset($message_link_url) && is_array($message_link_url)) {
 
         // append embed string to bottom of message
 	//$query = "update $tablename set message_body = concat(message_body, '$embed_string') where id = '$insert_id'";
-	//mysql_query($query, $mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+	//mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
 	$video = 'y';
 
@@ -402,7 +405,7 @@ if (isset($message_link_url) && is_array($message_link_url)) {
 
       $query = "insert into $locations[links_table] (id,t,link_url,link_title) ".
 	       "values ($insert_id,$t,'".escape($link_url)."','".escape($link_title)."')";
-      mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+      mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
       $link = 'y';
 
@@ -428,7 +431,7 @@ if (isset($message_image_url) && is_array($message_image_url)) {
 
       $query = "insert into $locations[images_table] (id,t,image_url) ".
 	       "values ($insert_id,$t,'".escape($image_url)."')";
-      mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+      mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
       $image = 'y';
 
@@ -444,16 +447,16 @@ $query = "update $tablename set ".
 	 "thread = case when '$thread' = '' then lpad($insert_id,5,'0') else concat('$thread','.',lpad($insert_id,5,'0')) end, ".
 	 "link = '$link', video = '$video', image = '$image' ".
 	 "where id = $insert_id";
-mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
 // account for warning preset
 if (isset($_POST[warning]) && $_POST[warning] != '' && ($_POST[warning] == 'warn-g' || $_POST[warning] == 'warn-n' || $_POST['warning'] == 'nsfw')) {
 
   $query = "insert into $locations[flags_table] (id, t, votes, score, type) values ('$insert_id', '$t', 5, 0, '$_POST[warning]')";
-  mysql_query($query, $mysql_link);
+  mysqli_query($mysqli_link, $query);
 
   $query = "update $tablename set type = '$_POST[warning]' where id = '$insert_id'";
-  mysql_query($query, $mysql_link);
+  mysqli_query($mysqli_link, $query);
 
 }
 
@@ -566,9 +569,9 @@ if (($config[rotate_tables] == 'daily' && date('mdy',time() - $config[displaytim
 	   ") order by t desc, parent desc, thread asc limit $config[maxrows]";
 }
 
-$results = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+$results = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
-if (mysql_num_rows($results) == 0)
+if (mysqli_num_rows($results) == 0)
   error('',$config[admin_email],'ERROR: No rows to output');
 
 $lastthread = array();
@@ -589,7 +592,7 @@ $sizes[4] = 'large';
 $sizes[5] = 'x-large';
 $sizes[6] = 'xx-large';
 
-while ($posts = mysql_fetch_array($results)) {
+while ($posts = mysqli_fetch_array($results)) {
 
   // test to see if current row is a new thread, increment $threads if so
   if (array_shift(explode('.',$posts[thread])) != $lastthread[0]) {
@@ -686,9 +689,9 @@ while ($posts = mysql_fetch_array($results)) {
 
     if ($posts['link'] == 'y') {
       $query = "select link_url, link_title from $locations[links_table] where t = '$posts[t]' and id = '$posts[id]'";
-      $jsonlinkresult = mysql_query($query, $mysql_link);
+      $jsonlinkresult = mysqli_query($mysqli_link, $query);
       $thislinks = array();
-      while ($thislink = mysql_fetch_array($jsonlinkresult)) {
+      while ($thislink = mysqli_fetch_array($jsonlinkresult)) {
 	array_push($thislinks, array('link_url' => $thislink['link_url'], 'link_title' => $thislink['link_title']));
       }
       array_push($thispost, array('links' => $thislinks));
@@ -696,9 +699,9 @@ while ($posts = mysql_fetch_array($results)) {
 
     if ($posts['image'] == 'y') {
       $query = "select image_url from $locations[images_table] where t = '$posts[t]' and id = '$posts[id]'";
-      $jsonimageresult = mysql_query($query, $mysql_link);
+      $jsonimageresult = mysqli_query($mysqli_link, $query);
       $thisimages = array();
-      while ($thisimage = mysql_fetch_array($jsonimageresult)) {
+      while ($thisimage = mysqli_fetch_array($jsonimageresult)) {
 	array_push($thisimages, array('image_url' => $thisimage['image_url']));
       }
       array_push($thispost, array('images' => $thisimages));
