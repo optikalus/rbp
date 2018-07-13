@@ -99,7 +99,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">        
 <head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-<meta name="viewport" content="width=device-width; initial-scale=.5; maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1.0" />
   <title><?=$config['title']?></title>
 
   <script language="Javascript" type="text/javascript">
@@ -340,7 +340,7 @@ Type:
 		$json = json_decode($result);
 		if (isset($json))
 		{
-			print '<div style="height: ' . $json->height . 'px; width: ' . $json->width . 'px">' . $json->html . '</div>';
+			print $json->html;
 			print '<br />';
 		}
 	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
