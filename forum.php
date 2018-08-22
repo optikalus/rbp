@@ -340,7 +340,7 @@ Type:
 		$json = json_decode($result);
 		if (isset($json))
 		{
-			print $json->html;
+			print '<div style="max-height:' . $json->height . 'px; max-width:' . $json->width . 'px">' . $json->html . '</div>';
 			print '<br />';
 		}
 	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
