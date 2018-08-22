@@ -25,9 +25,8 @@ if (!ini_get('session.auto_start')) {
 }
 
 // establish a connection with the database or notify an admin with the error string
-if (!isset($mysql_link)) {
-  $mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-  mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+if (!isset($mysqli_link)) {
+  $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 }
 
 if (!isset($_REQUEST[u]) || !isset($_REQUEST[key]) || !is_numeric($_REQUEST[u]) || strlen($_REQUEST[u]) < 1 || strlen($_REQUEST[key]) != 32)
@@ -35,14 +34,14 @@ if (!isset($_REQUEST[u]) || !isset($_REQUEST[key]) || !is_numeric($_REQUEST[u]) 
 
 // validate user / key pair
 $query = "select user_id from $locations[auth_users_table] where user_id = '$_REQUEST[u]' and activation_key = '$_REQUEST[key]' and queued = 'y'";
-$result = mysql_query($query, $mysql_link);
+$result = mysqli_query($mysqli_link, $query);
 
-if (mysql_num_rows($result) != 1)
+if (mysqli_num_rows($result) != 1)
   display_error('Invalid activation key');
 
 // activate the account
 $query = "update $locations[auth_users_table] set queued = 'n', activation_key = '' where user_id = '$_REQUEST[u]' and activation_key = '$_REQUEST[key]'";
-mysql_query($query, $mysql_link);
+mysqli_query($mysqli_link, $query);
 
 $headers = "From: \"".$config[title]."\" <".$config[admin_email].">\n";
 $body = "User_ID $_REQUEST[u] successfully validated their registration.\n\n";

@@ -9,8 +9,7 @@ require('config.inc.php');
 $config[title] = "Riceboy Image Browser";
 
 // establish a connection with the database or notify an admin with the error string
-$mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 
 // handle authentication if necessary
 if ($config[auth_required] == true) {
@@ -20,8 +19,8 @@ if ($config[auth_required] == true) {
 
   if (isset($_SESSION[username]) && isset($_SESSION[password])) {
     $query = "select username from $locations[auth_table] where username = '$_SESSION[username]' and password = '$_SESSION[password]'";
-    $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -69,11 +68,11 @@ $query = "select $tablename.id,$tablename.message_author,$tablename.message_subj
 	 "where $locations[images_table].t = '$t' and $locations[images_table].id = $tablename.id ".
 	 "order by $tablename.date desc";
 
-$result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+$result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
 print "<!-- $query -->\n";
 
-if (mysql_num_rows($result) == 0) {
+if (mysqli_num_rows($result) == 0) {
 
 ?>
 <table width='100%' border='0' cellspacing='0' cellpadding='0'>
@@ -94,14 +93,14 @@ if (mysql_num_rows($result) == 0) {
 } else {
 
   if (isset($_REQUEST[page]) && is_numeric($_REQUEST[page])) {
-    if ($_REQUEST[page] <= mysql_num_rows($result))
-      mysql_data_seek($result, $_REQUEST[page] - 1);
+    if ($_REQUEST[page] <= mysqli_num_rows($result))
+      mysqli_data_seek($result, $_REQUEST[page] - 1);
   } else {
     $_REQUEST[page] = 1;
   }
 
   $count = 0;
-  while ($row = mysql_fetch_array($result)) {
+  while ($row = mysqli_fetch_array($result)) {
 
     if ($count == 0) {
 
@@ -120,11 +119,11 @@ if (mysql_num_rows($result) == 0) {
       $prevpage = $_REQUEST[page] - 1;
       $nextpage = $_REQUEST[page] + 1;
 
-      if ($prevpage == 0 && $nextpage > mysql_num_rows($result))
+      if ($prevpage == 0 && $nextpage > mysqli_num_rows($result))
 	print "[Previous Image | Next Image]<br />\n";
       elseif ($prevpage == 0)
 	print "[Previous Image | <a href='$locations[image_browser]?page=$nextpage'>Next Image</a>]<br />\n";
-      elseif ($nextpage > mysql_num_rows($result))
+      elseif ($nextpage > mysqli_num_rows($result))
 	print "[<a href='$locations[image_browser]?page=$prevpage'>Previous Image</a> | Next Image]<br />\n";
       else
 	print "[<a href='$locations[image_browser]?page=$prevpage'>Previous Image</a> | <a href='$locations[image_browser]?page=$nextpage'>Next Image</a>]<br />\n";

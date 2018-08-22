@@ -74,6 +74,14 @@ $config['allow_proxy'] = true; // allow proxy posting or not
 $config['allow_tor'] = true; // allow proxy posting or not
 $config['rate_threshold'] = 1; // number of votes before showing a rating
 $config['session_name'] = 'rbp_iD';
+$config['always_display_date_full'] = false;
+$config['always_display_date_small'] = false;
+$config['require_captcha'] = false;
+
+// recaptcha
+$config['recaptcha_url'] = '';
+$config['recaptcha_key'] = '';
+$config['recaptcha_secret'] = '';
 
 // proxy users
 $config['proxy_users'] = array();

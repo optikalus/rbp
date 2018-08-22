@@ -24,9 +24,8 @@ header('Pragma: no-cache');
 if ($config['auth_required'] == true || isset($_REQUEST['needauth'])) {
 
   // establish a connection with the database or notify an admin with the error string
-  if (!isset($mysql_link)) {
-    $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-    mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+  if (!isset($mysqli_link)) {
+    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
   }
 
   // begin a session
@@ -34,8 +33,8 @@ if ($config['auth_required'] == true || isset($_REQUEST['needauth'])) {
 
   if (isset($_SESSION['username']) && isset($_SESSION['password'])) {
     $query = "select username from " . $locations['auth_table'] . " where username = '" . $_SESSION['username'] . "' and password = '" . $_SESSION['password'] . "'";
-    $result = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -100,7 +99,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">        
 <head>
 <meta http-equiv="content-type" content="text/html;charset=utf-8" />
-<meta name="viewport" content="width=device-width; initial-scale=.5; maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1.0" />
   <title><?=$config['title']?></title>
 
   <script language="Javascript" type="text/javascript">
@@ -167,9 +166,8 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numeric($_GET['t'])) {
 
   // set up the DB connection
-  if (!isset($mysql_link)) {
-    $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-    mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+  if (!isset($mysqli_link)) {
+    $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
   }
 
   // preset the table name
@@ -182,11 +180,11 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 	   "from $tablename ".
 	   "where id = " . $_GET['d'];
 
-  $result = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+  $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-  if (mysql_num_rows($result) == 1) {
+  if (mysqli_num_rows($result) == 1) {
 
-    $post = mysql_fetch_array($result);
+    $post = mysqli_fetch_array($result);
 
 ?>
 <table width='100%' border='0' cellpadding='0' cellspacing='0'>
@@ -222,9 +220,9 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 
     // add authentication tag
     $query = "select '1' from " . $locations['auth_posts_table'] . " where id = '" . $_GET['d'] . "' and t = '" . $_GET['t'] . "'";
-    $result = mysql_query($query, $mysql_link);
+    $result = mysqli_query($mysqli_link, $query);
 
-    if (mysql_num_rows($result) == 1)
+    if (mysqli_num_rows($result) == 1)
       print "<b>This post has been authenticated.</b><br />\n";
 
     print "</td><td align='right'>\n";
@@ -232,13 +230,13 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
     // add flagging stuff here:
 
     $query = "select score, type from " . $locations['flags_table'] . " where id = '" . $post['id'] . "' and t = '" . $_GET['t'] . "' order by votes desc limit 1";
-    $votes_res = mysql_query($query, $mysql_link);
+    $votes_res = mysqli_query($mysqli_link, $query);
 
     $vote_cur = null;
     $vote_type_preset = null;
 
-    if (mysql_num_rows($votes_res) > 0) {
-      $votes = mysql_fetch_array($votes_res);
+    if (mysqli_num_rows($votes_res) > 0) {
+      $votes = mysqli_fetch_array($votes_res);
       $vote_type_preset = $votes['type'];
       $votes['type'] = ucfirst($votes['type']);
       switch($votes['type']) {
@@ -303,10 +301,10 @@ Type:
 	       "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
 	       "from $tablename where $tablename.id = '$reply_id'";
 
-      $reply = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $reply = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($reply) == 1) {
-	$reply = mysql_fetch_array($reply);
+      if (mysqli_num_rows($reply) == 1) {
+	$reply = mysqli_fetch_array($reply);
 	print "In Reply to: <a href='" . $locations['forum'] . "?d=" . $reply['id'] . "&amp;t=" . $_GET['t'] . "'>" . $reply['message_subject'] . "</a> posted by " . $reply['message_author'] . " on " . $reply['date'] . "<br />\n";
       }
 
@@ -324,19 +322,19 @@ Type:
 	       "from " . $locations['images_table'] . " " .
 	       "where " . $locations['images_table'] . ".id = '" . $post['id'] . "' and " . $locations['images_table'] . ".t = '" . $_GET['t'] . "'";
 
-      $images = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $images = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($images) > 0) {
-	while ($image = mysql_fetch_array($images)) {
+      if (mysqli_num_rows($images) > 0) {
+	while ($image = mysqli_fetch_array($images)) {
 	  if (strlen($image['image_url']) > 0) {
 	    $gfycat_data_id = null;
-		if (preg_match('/gfycat\.com\/(\w*)/', $image['image_url'], $gfycat_data_id)) {
-		$apiurl = 'http://gfycat.com/cajax/oembed/';
+		if (preg_match('/gfycat\.com\/\w*/', $image['image_url'])) {
+    $apiurl = 'https://api.gfycat.com/v1/oembed?url=';
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_URL,($apiurl . $gfycat_data_id[1]));
+		curl_setopt($ch, CURLOPT_URL,($apiurl . $image['image_url']));
 		$result=curl_exec($ch);
 		curl_close($ch);
 		$json = json_decode($result);
@@ -353,6 +351,8 @@ Type:
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $image['image_url'] , "' type='video/webm'></video><br /><a href='" , $image['image_url'] , "'>source</a><br /><br />\n";
 	    } elseif (preg_match('/^(.+?)\.gifv$/i', $image['image_url'], $gifv_filename)) {
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $gifv_filename[1] , ".webm' type='video/webm'></video><br /><a href='", $image['image_url'] ,"'>source</a><br /><br />\n";
+      } elseif (preg_match('/^https?:\/\/rbp\.f0e\.net\/(.+)$/i', $image['image_url'], $rel_image)) {
+        echo "<img src='//rbp.f0e.net/" , $rel_image[1] , "' alt ='' /><br /><br />\n";
 	    } else
 	      echo "<img src='" . $image['image_url'] . "' alt='' /><br /><br />\n";
 	  }
@@ -370,10 +370,10 @@ Type:
 	       "from " . $locations['links_table'] . " ".
 	       "where " . $locations['links_table'] . ".id = '" . $post['id'] . "' and " . $locations['links_table'] . ".t = '" . $_GET['t'] . "'";
 
-      $links = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+      $links = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-      if (mysql_num_rows($links) > 0) {
-	while ($link = mysql_fetch_array($links)) {
+      if (mysqli_num_rows($links) > 0) {
+	while ($link = mysqli_fetch_array($links)) {
 	  if (strlen($link['link_url']) > 0) {
 	    $youtube_video_id = null;
 	    $vimeo_video_id = null;
@@ -476,14 +476,14 @@ Type:
 	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' ".
 	     "order by $tablename.parent desc,$tablename.thread asc";
 
-    $replies = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+    $replies = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-    if (mysql_num_rows($replies) > 0) {
+    if (mysqli_num_rows($replies) > 0) {
 
       print "<ul>\n";
 
       $lastthread = array();
-      while ($reply = mysql_fetch_array($replies)) {
+      while ($reply = mysqli_fetch_array($replies)) {
 
 	// find difference between these arrays, returns an array
   	print str_repeat('</li></ul>',count(array_diff($lastthread,explode('.',$reply['thread']))));
@@ -582,22 +582,21 @@ Type:
   if ($config['show_users'] === true) {
 
     // establish a connection with the database or notify an admin with the error string
-    if (!isset($mysql_link)) {
-      $mysql_link = mysql_connect($config['db_host'],$config['db_user'],$config['db_pass']) or error($config['db_errstr'],$config['admin_email'],"mysql_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysql_error());
-      mysql_select_db($config['db_name'],$mysql_link) or error($config['db_errstr'],$config['admin_email'],"mysql_select_db(" . $config['db_name'] . ")\n".mysql_error());
+    if (!isset($mysqli_link)) {
+      $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],"mysqli_connect(" . $config['db_host'] . "," . $config['db_user'] . "," . $config['db_pass'] . ")\n".mysqli_error());
     }
 
     $query = "select username from " . $locations['auth_table'] . " order by username";
-    $users = mysql_query($query,$mysql_link) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysql_error());
+    $users = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
-    if (mysql_num_rows($users) > 0) {
+    if (mysqli_num_rows($users) > 0) {
 
       print "<br />Current user list: ";
 
       $i = 1;
-      while ($user = mysql_fetch_array($users)) {
+      while ($user = mysqli_fetch_array($users)) {
 	print " " . $user['username'];
-	if ($i != mysql_num_rows($users)) print ',';
+	if ($i != mysqli_num_rows($users)) print ',';
 	$i++;
       }
 
@@ -613,7 +612,7 @@ function display_header() {
   global $config;
 
 ?>
-<table width='100%' border='0' cellpadding='0' cellspacing='0'>
+<table width='100%' border='0' cellpadding='0' cellspacing='0' id='boardheader'>
   <tr>
     <td class='borderoutline'>
 <table width='100%' border='0' cellpadding='4' cellspacing='1'>
@@ -807,15 +806,12 @@ function display_form($parent=null,$t=null,$thread=null) {
     <td><select name='warning' style='font-size: smaller'><option value=''>None</option><option value='warn-g'>Warning - Gross</option><option value='warn-n'>Warning - Nudity</option><option value="nsfw">NSFW</option></select></td>
   </tr>
 <?
-  if (!isset($_COOKIE['cookie_name'])) {
-    require_once("b2evo_captcha.config.php");
-    require_once("b2evo_captcha.class.php");
-    $captcha = new b2evo_captcha($CAPTCHA_CONFIG);
-    $captcha_image = $captcha->get_b2evo_captcha();
+  if (!isset($_COOKIE['cookie_name']) && $config['require_captcha'] === true) {
 ?>
   <tr>
     <td align="right" valign="top">Vaildate:</td>
-    <td><img src="<?=$captcha_image?>" /><br /><input type="hidden" name="captcha_image" value="<?=$captcha_image?>" /><input type="text" name="captcha_verify" class="forminput" /></td>
+    <td><div class="g-recaptcha" data-sitekey="<?=$config['recaptcha_key']?>"></div></td>
+    <script src='https://www.google.com/recaptcha/api.js'></script>
   </tr>
 <? } ?>
 </table>

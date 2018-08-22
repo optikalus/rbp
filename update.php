@@ -16,9 +16,8 @@ if (!ini_get('session.auto_start')) {
 $errors = array();
 
 // establish a connection with the database or notify an admin with the error string
-if (!isset($mysql_link)) {
-  $mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-  mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+if (!isset($mysqli_link)) {
+  $mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 }
 
 if (!isset($_POST[username]) || !isset($_POST[password_a]) || !isset($_POST[password_b]) || !isset($_POST[password]))
@@ -45,9 +44,9 @@ if (strlen($_POST[username]) < 1 || strlen($_POST[username]) > 255) {
 } else {
 
   $query = "select user_id from $locations[auth_users_table] where username = '$_POST[username]'";
-  $result = mysql_query($query, $mysql_link);
+  $result = mysqli_query($mysqli_link, $query);
 
-  if (mysql_num_rows($result) != 1) {
+  if (mysqli_num_rows($result) != 1) {
     $errors[general] .= '<br />Username does not exist';
     $errors[username] = true;
   }
@@ -55,9 +54,9 @@ if (strlen($_POST[username]) < 1 || strlen($_POST[username]) > 255) {
 }
 
 $query = "select user_id from $locations[auth_users_table] where username = '$_POST[username]' and password = md5('$_POST[password]') and active = 'y' and queued = 'n'";
-$result = mysql_query($query, $mysql_link);
+$result = mysqli_query($mysqli_link, $query);
 
-if (mysql_num_rows($result) != 1) {
+if (mysqli_num_rows($result) != 1) {
   $errors[general] .= '<br />Old password incorrect';
   $errors[password] = true;
 }
@@ -68,7 +67,7 @@ if (count($errors) > 0)
 
 // update the account
 $query = "update $locations[auth_users_table] set password = md5('$_POST[password_a]') where username = '$_POST[username]'";
-mysql_query($query, $mysql_link);
+mysqli_query($mysqli_link, $query);
 
 header("Location: passwordupdated.php");
 exit();

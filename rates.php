@@ -6,8 +6,7 @@
 require('config.inc.php');
 
 // establish a connection with the database or notify an admin with the error string
-$mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 
 ?>
 <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'  'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
@@ -87,18 +86,18 @@ if (isset($_REQUEST[type]) && isset($_REQUEST[period]) && isset($_REQUEST[limit]
 
   // query
   $query = "select * from $locations[flags_table] where $t $type order by votes desc, score desc limit $_REQUEST[limit]";
-  $result = mysql_query($query, $mysql_link);
+  $result = mysqli_query($mysqli_query, $query);
 
-  if (mysql_error())
-    print "<!-- $query\n".mysql_error()." -->\n";
+  if (mysqli_error())
+    print "<!-- $query\n".mysqli_error()." -->\n";
 
-  if (mysql_num_rows($result) > 0) {
+  if (mysqli_num_rows($result) > 0) {
 
 ?>
 <div>
 <?
 
-    while($post = mysql_fetch_array($result)) {
+    while($post = mysqli_fetch_array($result)) {
 
 ?>
 <a href='<?=$locations[forum]?>?d=<?=$post[id]?>&amp;t=<?=str_pad($post[t], 6, 0, STR_PAD_LEFT)?>'>http://<?=$_SERVER[SERVER_NAME]?><?=$locations[forum]?>?d=<?=$post[id]?>&amp;t=<?=str_pad($post[t], 6, 0, STR_PAD_LEFT)?></a> <?=$post[votes]?> votes, score: <?=$post[score]?> <?=$post[type]?><br />

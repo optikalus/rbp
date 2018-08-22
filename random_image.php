@@ -9,8 +9,7 @@ require('config.inc.php');
 $config[title] = "Riceboy Image Browser";
 
 // establish a connection with the database or notify an admin with the error string
-$mysql_link = mysql_connect($config[db_host],$config[db_user],$config[db_pass]) or error($config[db_errstr],$config[admin_email],"mysql_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysql_error());
-mysql_select_db($config[db_name],$mysql_link) or error($config[db_errstr],$config[admin_email],"mysql_select_db($config[db_name])\n".mysql_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
 
 // handle authentication if necessary
 if ($config[auth_required] == true) {
@@ -20,8 +19,8 @@ if ($config[auth_required] == true) {
 
   if (isset($_SESSION[username]) && isset($_SESSION[password])) {
     $query = "select username from $locations[auth_table] where username = '$_SESSION[username]' and password = '$_SESSION[password]'";
-    $result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
-    if (mysql_num_rows($result) != 1) {
+    $result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+    if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
@@ -60,11 +59,11 @@ if ($config[auth_required] == true) {
 
 <?
 
-$query = 'select * from rbp_images order by rand() limit 100';
+$query = 'select * from ' . $locations['images_table'] . ' order by rand() limit 100';
 
-$result = mysql_query($query,$mysql_link) or error($config[db_errstr],$config[admin_email],$query."\n".mysql_error());
+$result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
 
-if (mysql_num_rows($result) == 0) {
+if (mysqli_num_rows($result) == 0) {
 
 ?>
 <table width='100%' border='0' cellspacing='0' cellpadding='0'>
@@ -98,7 +97,7 @@ if (mysql_num_rows($result) == 0) {
     <td colspan='2'>
 <?
 
-  while ($row = mysql_fetch_array($result)) {
+  while ($row = mysqli_fetch_array($result)) {
 
 ?>
     <a href='<? print "$locations[forum]?d=$row[id]&amp;t=" . (strlen($row[t]) == 5 ? '0' . $row[t] : $row[t]); ?>'><img src='<?=$row[image_url]?>' border='0' alt=''></a>
