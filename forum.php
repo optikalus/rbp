@@ -131,7 +131,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   function hidden_links(num) {
     var hidden_links_text = "<table class='main'>";
     for (i = 1; i < num.value; i++) {
-      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
+      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
     }
     hidden_links_text = hidden_links_text + "</table>\n";
     document.getElementById('hidden_links_text').innerHTML = hidden_links_text;
@@ -140,7 +140,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   function hidden_images(num) {
     var hidden_images_text = "<table class='main'>";
     for (i = 1; i < num.value; i++) {
-      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
+      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
     }
     hidden_images_text = hidden_images_text + "</table>\n";
     document.getElementById('hidden_images_text').innerHTML = hidden_images_text;
@@ -755,7 +755,7 @@ function display_form($parent=null,$t=null,$thread=null) {
   <tr>
     <td width='100' align='right' valign='top'>Link URL: </td>
     <td>
-    <input type='text' name='message_link_url[]' value='http://' size='50' maxlength='255' class='forminput' />
+    <input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' />
     <select name='num_links' onchange='hidden_links(this);' class='smallselect'><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option><option value='5'>5</option><option value='6'>6</option><option value='7'>7</option><option value='8'>8</option><option value='9'>9</option><option value='10'>10</option></select>
     </td>
   </tr>
@@ -769,7 +769,7 @@ function display_form($parent=null,$t=null,$thread=null) {
   <tr>
     <td width='100' align='right' valign='top'>Image URL: </td>
     <td>
-    <input type='text' name='message_image_url[]' value='http://' size='50' maxlength='255' class='forminput' />
+    <input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' />
     <select name='num_images' onchange='hidden_images(this);' class='smallselect'><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option><option value='5'>5</option><option value='6'>6</option><option value='7'>7</option><option value='8'>8</option><option value='9'>9</option><option value='10'>10</option></select>
     </td>
   </tr>
