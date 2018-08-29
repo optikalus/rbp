@@ -150,11 +150,6 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   </script>
 
   <link rel="stylesheet" type="text/css" href="<?=$locations['css']?>" />
-<?php
-  if ($_SERVER['REMOTE_ADDR'] == '72.197.128.9') {
-    print "  <style type='text/css'> body { font-family: Gill Sans MT; font-size: larger; } </style>\n";
-  }
-?>
 
 </head>
 
@@ -171,14 +166,14 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
   }
 
   // preset the table name
-  $tablename = $locations['posts_table'].'_'.$_GET['t'];
+  $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$_GET['t'] : $locations['posts_table']);
 
   // query for the post
   $query = "select $tablename.id, $tablename.parent, $tablename.message_author, $tablename.message_author_email, ".
 	   "$tablename.message_subject, $tablename.message_body, date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date, ".
 	   "$tablename.ip, $tablename.thread, $tablename.link, $tablename.image, $tablename.video ".
 	   "from $tablename ".
-	   "where id = " . $_GET['d'];
+	   "where id = " . $_GET['d'] . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
 
   $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -299,7 +294,7 @@ Type:
 
       $query = "select $tablename.id, $tablename.message_author, $tablename.message_subject, ".
 	       "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
-	       "from $tablename where $tablename.id = '$reply_id'";
+	       "from $tablename where $tablename.id = '$reply_id'" . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
 
       $reply = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -473,7 +468,7 @@ Type:
 	     "$tablename.link, $tablename.image, $tablename.video, ifnull($tablename.score, 'null') as score, ifnull($tablename.type, 'null') as type, ".
 	     "case when $tablename.message_body = '' then 'n' else 'y' end as body, ".
 	     "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
-	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' ".
+	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' " . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '') . ' ' .
 	     "order by $tablename.parent desc,$tablename.thread asc";
 
     $replies = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
