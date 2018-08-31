@@ -256,7 +256,7 @@ if (isset($_REQUEST['keyword']) || isset($_REQUEST['finduser']) ||
       if ($i != 0)
 	$query .= ' union ';
 
-      $query .= '(select id,parent,message_author,message_subject,date_format(date,"%m/%d/%Y - %l:%i:%s %p") as date, date as date2, ' . (!$config['rotate_tables'] ? 't' : "' . $t . '") . ' as t ' .
+      $query .= '(select id,parent,message_author,message_subject,date_format(date,"%m/%d/%Y - %l:%i:%s %p") as date, date as date2, ' . (!$config['rotate_tables'] ? 't' : '"' . $t . '"') . ' as t ' .
 		'from ' . $tablename . ' where (' . $where . ') ' .
 		($daterange != 999999 ? 'and date >= date_sub(curdate(), interval ' . $daterange . ' day) ' : '') .
 		'and message_author not in ("wot","burtle","adamgeek","myc187","thepeekay","pkx","fj","the doug","ratbert","bdev","loki") ' .
