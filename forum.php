@@ -131,7 +131,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   function hidden_links(num) {
     var hidden_links_text = "<table class='main'>";
     for (i = 1; i < num.value; i++) {
-      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
+      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
     }
     hidden_links_text = hidden_links_text + "</table>\n";
     document.getElementById('hidden_links_text').innerHTML = hidden_links_text;
@@ -140,7 +140,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   function hidden_images(num) {
     var hidden_images_text = "<table class='main'>";
     for (i = 1; i < num.value; i++) {
-      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
+      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
     }
     hidden_images_text = hidden_images_text + "</table>\n";
     document.getElementById('hidden_images_text').innerHTML = hidden_images_text;
@@ -150,11 +150,6 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   </script>
 
   <link rel="stylesheet" type="text/css" href="<?=$locations['css']?>" />
-<?php
-  if ($_SERVER['REMOTE_ADDR'] == '72.197.128.9') {
-    print "  <style type='text/css'> body { font-family: Gill Sans MT; font-size: larger; } </style>\n";
-  }
-?>
 
 </head>
 
@@ -171,14 +166,14 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
   }
 
   // preset the table name
-  $tablename = $locations['posts_table'].'_'.$_GET['t'];
+  $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$_GET['t'] : $locations['posts_table']);
 
   // query for the post
   $query = "select $tablename.id, $tablename.parent, $tablename.message_author, $tablename.message_author_email, ".
 	   "$tablename.message_subject, $tablename.message_body, date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date, ".
 	   "$tablename.ip, $tablename.thread, $tablename.link, $tablename.image, $tablename.video ".
 	   "from $tablename ".
-	   "where id = " . $_GET['d'];
+	   "where id = " . $_GET['d'] . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
 
   $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -299,7 +294,7 @@ Type:
 
       $query = "select $tablename.id, $tablename.message_author, $tablename.message_subject, ".
 	       "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
-	       "from $tablename where $tablename.id = '$reply_id'";
+	       "from $tablename where $tablename.id = '$reply_id'" . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
 
       $reply = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -340,7 +335,7 @@ Type:
 		$json = json_decode($result);
 		if (isset($json))
 		{
-			print $json->html;
+			print '<div style="max-height:' . $json->height . 'px; max-width:' . $json->width . 'px">' . $json->html . '</div>';
 			print '<br />';
 		}
 	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
@@ -473,7 +468,7 @@ Type:
 	     "$tablename.link, $tablename.image, $tablename.video, ifnull($tablename.score, 'null') as score, ifnull($tablename.type, 'null') as type, ".
 	     "case when $tablename.message_body = '' then 'n' else 'y' end as body, ".
 	     "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
-	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' ".
+	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' " . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '') . ' ' .
 	     "order by $tablename.parent desc,$tablename.thread asc";
 
     $replies = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
@@ -760,7 +755,7 @@ function display_form($parent=null,$t=null,$thread=null) {
   <tr>
     <td width='100' align='right' valign='top'>Link URL: </td>
     <td>
-    <input type='text' name='message_link_url[]' value='http://' size='50' maxlength='255' class='forminput' />
+    <input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' />
     <select name='num_links' onchange='hidden_links(this);' class='smallselect'><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option><option value='5'>5</option><option value='6'>6</option><option value='7'>7</option><option value='8'>8</option><option value='9'>9</option><option value='10'>10</option></select>
     </td>
   </tr>
@@ -774,7 +769,7 @@ function display_form($parent=null,$t=null,$thread=null) {
   <tr>
     <td width='100' align='right' valign='top'>Image URL: </td>
     <td>
-    <input type='text' name='message_image_url[]' value='http://' size='50' maxlength='255' class='forminput' />
+    <input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' />
     <select name='num_images' onchange='hidden_images(this);' class='smallselect'><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option><option value='4'>4</option><option value='5'>5</option><option value='6'>6</option><option value='7'>7</option><option value='8'>8</option><option value='9'>9</option><option value='10'>10</option></select>
     </td>
   </tr>

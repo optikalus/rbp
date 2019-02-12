@@ -6,102 +6,53 @@
 require('config.inc.php');
 
 // we don't accept get as a method of posting
-if ($_SERVER[REQUEST_METHOD] == 'GET') {
-
-  $message = "Invalid request 'GET', bailing\n\n".
-	     "POST:\n".
-	     print_r($_POST, true).
-	     "\n\n".
-	     "GET:\n".
-	     print_r($_GET, true).
-	     "\n\n".
-	     "SERVER:\n".
-	     print_r($_SERVER, true).
-	     "\n\n".
-	     "COOKIE:\n".
-	     print_r($_COOKIE, true).
-	     "\n\n";
-  #mail($config[admin_email],"Error in $_SERVER[SCRIPT_FILENAME]",$message,"From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
-  header("Location: $locations[forum]");
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+  header('Location: ' . $locations['forum']);
   exit();
 }
 
 // make sure we received all the form values
-if (!isset($_POST[message_author]) || !isset($_POST[message_author_email]) ||
-    !isset($_POST[message_subject]) || !isset($_POST[message_body]) ||
-    !isset($_POST[message_link_url]) || !isset($_POST[message_link_title]) ||
-    !isset($_POST[message_image_url])) {
+if (!isset($_POST['message_author']) || !isset($_POST['message_author_email']) ||
+    !isset($_POST['message_subject']) || !isset($_POST['message_body']) ||
+    !isset($_POST['message_link_url']) || !isset($_POST['message_link_title']) ||
+    !isset($_POST['message_image_url'])) {
 
-  $message = "Did not receive all the required form values\n\n".
-	     "POST:\n".
-	     print_r($_POST, true).
-	     "\n\n".
-	     "GET:\n".
-	     print_r($_GET, true).
-	     "\n\n".
-	     "SERVER:\n".
-	     print_r($_SERVER, true).
-	     "\n\n".
-	     "COOKIE:\n".
-	     print_r($_COOKIE, true).
-	     "\n\n";
-
-    print "eat poop";
-
-  #mail($config[admin_email],"Error in $_SERVER[SCRIPT_FILENAME]",$message,"From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
-  #header("Location: $locations[forum]");
+  print 'Did not receive all POST values.';
   exit();
-
 }
 
-$remote_addr = $_SERVER[REMOTE_ADDR];
+$remote_addr = $_SERVER['REMOTE_ADDR'];
 
 // check banned list
-#if (isset($_COOKIE[vanilla])) ban();
-
-// protect john
-if (strtolower($_POST[message_author_email]) == 'jrjr@snip.net') ban();
-if (stristr(strtolower($_POST[message_author]), 'goodwork')) ban();
-
 if (isset($banned) && is_array($banned)) {
 
-  if (stristr(strtolower($_POST[message_author]), 'guy')) ban();
+  if (in_array(strtolower($_POST['message_author']), $banned['usernames'])) ban();
 
-  if (in_array(strtolower($_POST[message_author]), $banned[usernames])) ban();
-
-  if (isset($banned[ips])) {
-    foreach ($banned[ips] as $ip => $value) {
-      if (strpos($remote_addr, $ip) === 0 && strtolower($_POST[message_author]) != 'epicutioner') ban();
+  if (isset($banned['ips'])) {
+    foreach ($banned['ips'] as $ip => $value) {
+      if (strpos($remote_addr, $ip) === 0 && strtolower($_POST['message_author']) != 'epicutioner') ban();
     }
   }
-
 }
 
 // check for proxy posting
-if (isset($_SERVER[HTTP_COMING_FROM]) ||
-    isset($_SERVER[HTTP_X_COMING_FROM]) ||
-    isset($_SERVER[HTTP_FORWARDED]) ||
-    isset($_SERVER[HTTP_X_FORWARDED]) ||
-    isset($_SERVER[HTTP_FORWARDED_FOR]) ||
-    isset($_SERVER[HTTP_X_FORWARDED_FOR]) ||
-    isset($_SERVER[HTTP_VIA])) {
+if (isset($_SERVER['HTTP_COMING_FROM']) ||
+    isset($_SERVER['HTTP_X_COMING_FROM']) ||
+    isset($_SERVER['HTTP_FORWARDED']) ||
+    isset($_SERVER['HTTP_X_FORWARDED']) ||
+    isset($_SERVER['HTTP_FORWARDED_FOR']) ||
+    isset($_SERVER['HTTP_X_FORWARDED_FOR']) ||
+    isset($_SERVER['HTTP_VIA'])) {
 
-  /*$proxylog = fopen("/home/bryan/rbp/html/proxylog.php","a");
-  fwrite($proxylog, print_r($_SERVER,true) . "\n\n");
-  fclose($proxylog);
-   */
-  if ($config[allow_proxy] === false) {
+  if ($config['allow_proxy'] === false) {
 
-    if (!in_array(strtolower($_POST[message_author]),$config[proxy_users])) {
+    if (!in_array(strtolower($_POST['message_author']),$config['proxy_users'])) {
 
-    #mail($config[admin_email],"Error in $_SERVER[SCRIPT_FILENAME]","Proxy post denied from $_POST[message_author] [$_SERVER[REMOTE_ADDR]\n","From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
       print "Posting via proxy has been DISABLED.";
       exit();
 
     }
-
   }
-
 }
 
 if ($config['allow_tor'] === false) {
@@ -112,15 +63,11 @@ if ($config['allow_tor'] === false) {
   $host = $octets[4] . "." . $octets[3] . "." . $octets[2] . "." . $octets[1] . ".80.210.204.180.66.ip-port.exitlist.torproject.org";
   if (gethostbyname($host) == '127.0.0.2') {
     $_POST['message_author'] = 'Charles';
-    mail('optikal@f0e.net',"Error in $_SERVER[SCRIPT_FILENAME]","TOR post denied from $_POST[message_author] [$_SERVER[REMOTE_ADDR]\n\n$_POST[message_subject]\n$_POST[message_body]\n","From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
-      #print "Posting via TOR has been DISABLED.";
-      #exit();
   }
-
 }
 
 // image verification
-if (!isset($_COOKIE[cookie_name]) && !isset($_SERVER['HTTP_X_IS_APP']) && $config['require_captcha'] === true) {
+if (!isset($_COOKIE['cookie_name']) && !isset($_SERVER['HTTP_X_IS_APP']) && $config['require_captcha'] === true) {
 
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_URL, $config['recaptcha_url'] . '?secret=' . $config['recaptcha_secret'] . '&response=' . $_POST['g-recaptcha-response'] . '&remoteip=' . $_SERVER['REMOTE_ADDR']);
@@ -136,69 +83,48 @@ if (!isset($_COOKIE[cookie_name]) && !isset($_SERVER['HTTP_X_IS_APP']) && $confi
     print "Please <a href='#' onClick='history.go(-1)'>go back</a> and re-enter your reCAPTCHA.";
     exit();
   }
-
 }
 
 // no posts w/ <a href
-if (stristr($_POST[message_body], '<a href') || stristr($_POST[message_subject], '<a href') || stristr($_POST[message_body], '[url=')) {
+if (stristr($_POST['message_body'], '<a href') || stristr($_POST['message_subject'], '<a href') || stristr($_POST['message_body'], '[url=')) {
   sleep(1);
-  header("Location: $locations[forum]");
+  header('Location: ' . $locations['forum']);
   exit;
 }
 
 $video = 'n';
 
 // preset the variables from the post
-$message_author = break_html($_POST[message_author]);
-$message_author_email = break_html($_POST[message_author_email]);
-$message_subject = break_html($_POST[message_subject]);
-$message_body = clear_html(break_html($_POST[message_body]));
-$message_link_url = $_POST[message_link_url];
-$message_link_title = $_POST[message_link_title];
-$message_image_url = $_POST[message_image_url];
-
-// handle bitches
-#if ($_SERVER[REMOTE_ADDR] == '24.44.141.87' || $_SERVER[REMOTE_ADDR] == '75.83.244.135' || $_SERVER[REMOTE_ADDR] == '85.214.73.63' || isset($_COOKIE['pussy'])) {
-#  $words = array("arf","woof","meow","oink","gobble","cluck","rabble","blah");
-#  $message_subject = preg_replace("/\w+/", $words[rand(0, sizeof($words))], $message_subject);
-#  $message_body = preg_replace("/\w+/", $words[rand(0, sizeof($words))], $message_body);
-#}
-
-#if ($_SERVER['REMOTE_ADDR'] == '70.233.176.76' || isset($_COOKIE['cody'])) {
-#  setcookie('cody', '1', time()+(60*60*24*30),'/');
-#  $message_subject = '&lt;random bullshit&gt;';
-#  $message_body = '';
-#}
-
-$message_subject = preg_replace('/\bswine flu\b/i', 'balls', $message_subject); 
-#if ($_SERVER[REMOTE_ADDR] == '75.83.244.135') {
-#  $message_subject = preg_replace(array('/\bcharles\b/i', '/\Charl4s\b/i', '/\bchuck\b/i', '/\bc\s*h\s*a\s*r\s*l\s*e\s*s\b/i'), array('pussy','pussy','pussy','pussy'), $message_subject);
-#  $message_subject = preg_replace('/ - .+$/',' - pussy', $message_subject);
-#}
+$message_author = break_html($_POST['message_author']);
+$message_author_email = break_html($_POST['message_author_email']);
+$message_subject = break_html($_POST['message_subject']);
+$message_body = clear_html(break_html($_POST['message_body']));
+$message_link_url = $_POST['message_link_url'];
+$message_link_title = $_POST['message_link_title'];
+$message_image_url = $_POST['message_image_url'];
 
 $thread = null;
 $parent = null;
 
 // setup the table rotation scheme
-if ($config[rotate_tables] == 'daily')
+if ($config['rotate_tables'] == 'daily')
   $t = date('mdy');
-elseif ($config[rotate_tables] == 'weekly')
+elseif ($config['rotate_tables'] == 'weekly')
   $t = strftime('%y%W');
-elseif ($config[rotate_tables] == 'monthly')
+elseif ($config['rotate_tables'] == 'monthly')
   $t = date('my');
-elseif ($config[rotate_tables] == 'yearly')
+elseif ($config['rotate_tables'] == 'yearly')
   $t = date('Y');
 else
   $t = date('mdy');
 
-if (isset($_POST[thread]) && preg_match('/^[0-9.]+$/',$_POST[thread]) &&
-    isset($_POST[t]) && is_numeric($_POST[t]) &&
-    isset($_POST[parent]) && is_numeric($_POST[parent])) {
+if (isset($_POST['thread']) && preg_match('/^[0-9.]+$/',$_POST['thread']) &&
+    isset($_POST['t']) && is_numeric($_POST['t']) &&
+    isset($_POST['parent']) && is_numeric($_POST['parent'])) {
 
-    $thread = $_POST[thread];
-    $parent = $_POST[parent];
-    $t = $_POST[t];
-
+    $thread = $_POST['thread'];
+    $parent = $_POST['parent'];
+    $t = $_POST['t'];
 }
 
 // leave if the user didn't submit anything useful
@@ -206,69 +132,67 @@ if (strlen($message_author) < 1 || strlen($message_subject) < 1 ||
     preg_match("/^\s+$/",$message_author) || preg_match("/^\s+$/",$message_subject) ||
     preg_match("/\[url\=/",$message_subject)) {
 
-  #mail($config[admin_email],"Error in $_SERVER[SCRIPT_FILENAME]","Received '$message_author' as message_author -- too short\n","From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
-  header("Location: $locations[forum]");
+  header('Location: ' . $locations['forum']);
   exit();
-
 }
 
 // establish a connection with the database or notify an admin with the error string
-$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config[db_errstr],$config[admin_email],"mysqli_connect($config[db_host],$config[db_user],$config[db_pass])\n".mysqli_error());
+$mysqli_link = mysqli_connect($config['db_host'],$config['db_user'],$config['db_pass'],$config['db_name']) or error($config['db_errstr'],$config['admin_email'],'mysqli_connect(' . $config['db_host'] . ',' . $config['db_user'] . ',' . $config['db_pass'] . ')' . "\n".mysqli_error());
 
 // handle authentication if necessary
 $authenticated = false;
-if ($config[auth_required] == true || isset($_COOKIE[auth])) {
+if ($config['auth_required'] == true || isset($_COOKIE['auth'])) {
 
   // begin a session
   session_start();
 
-  if (isset($_SESSION[username]) && isset($_SESSION[password])) {
-    $query = "select username from $locations[auth_table] where username = '$_SESSION[username]' and password = '$_SESSION[password]'";
-    $result = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+  if (isset($_SESSION['username']) && isset($_SESSION['password'])) {
+    $query = 'select username from ' . $locations['auth_table'] . ' where username = "' . $_SESSION['username'] . '" and password = "' . $_SESSION['password'] . '"';
+    $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
     if (mysqli_num_rows($result) != 1) {
       // destroy the erroneous session
       session_destroy();
       // leave
-      header("Location: $locations[login]");
+      header('Location: ' . $locations['login']);
       exit();
     } else {
       $authenticated = true;
     }
   } else {
     // leave
-    header("Location: $locations[login]");
+    header('Location: ' . $locations['login']);
     exit();
   }
 
 }
 
 // authentication
-if ($config[auth_post_required] == true) {
+if ($config['auth_post_required'] == true) {
 
   // start session (if not already started)
   if (!ini_get('session.auto_start')) {
-    session_name($config[session_name]);
-    session_save_path($locations[session_path]);
+    session_name($config['session_name']);
+    session_save_path($locations['session_path']);
     ini_set('session.gc_maxlifetime','604800');
     session_start();
   }
 
-  if ((!isset($_SESSION[uid]) || !isset($_SESSION[authkey])) && (!isset($_POST[username]) || !isset($_POST[password])))
+  if ((!isset($_SESSION['uid']) || !isset($_SESSION['authkey'])) && (!isset($_POST['username']) || !isset($_POST['password'])))
     error_redirect(array('authentication' => true, 'general' => 'You must log in to post'));
 
-  if (isset($_POST[username]) && isset($_POST[password])) {
+  if (isset($_POST['username']) && isset($_POST['password'])) {
 
-    $query = "select user_id, md5(concat(user_id, username, password)) as authkey from $locations[auth_users_table] where username = '$_POST[username]' and password = md5('$_POST[password]') and active = 'y' and queued = 'n'";
+    $query = 'select user_id, md5(concat(user_id, username, password)) as authkey from ' . $locations['auth_users_table'] . ' where username = "' . $_POST['username'] . '" and password = md5("' . $_POST['password'] . '") and active = "y" and queued = "n"';
     $result = mysqli_query($mysqli_link, $query);
 
     // authorized
     if (mysqli_num_rows($result) === 1) {
 
       $auth = mysqli_fetch_array($result);
-      $_SESSION[uid] = $auth['user_id'];
-      $_SESSION[authkey] = $auth['authkey'];
+      $_SESSION['uid'] = $auth['user_id'];
+      $_SESSION['authkey'] = $auth['authkey'];
 
-      $query = "update $locations[auth_users_table] set last_login = now(), post_count = post_count + 1 where user_id = '$_SESSION[uid]'";
+      $query = 'update ' . $locations['auth_users_table'] . ' set last_login = now(), post_count = post_count + 1 where user_id = "' . $_SESSION['uid'] . '"';
       mysqli_query($mysqli_link, $query);
 
     // not authorized
@@ -280,7 +204,7 @@ if ($config[auth_post_required] == true) {
 
   } else {
 
-    $query = "select user_id, md5(concat(user_id, username, password)) as authkey from $locations[auth_users_table] where user_id = '$_SESSION[uid]' and active = 'y' and queued = 'n'";
+    $query = 'select user_id, md5(concat(user_id, username, password)) as authkey from ' . $locations['auth_users_table'] . ' where user_id = "' . $_SESSION['uid'] . '" and active = "y" and queued = "n"';
     $result = mysqli_query($mysqli_link, $query);
 
     if (mysqli_num_rows($result) === 1) {
@@ -294,7 +218,7 @@ if ($config[auth_post_required] == true) {
 
       } else {
 
-	$query = "update $locations[auth_users_table] set last_login = now(), post_count = post_count + 1 where user_id = '$_SESSION[uid]'";
+	$query = 'update ' . $locations['auth_users_table'] . ' set last_login = now(), post_count = post_count + 1 where user_id = "' . $_SESSION['uid'] . '"';
 	mysqli_query($mysqli_link, $query);
 
       }
@@ -306,75 +230,27 @@ if ($config[auth_post_required] == true) {
       error_redirect(array('authentication' => true, 'general' => 'Invalid Session'));
 
     }
-
   }
-
 }
 
 // set the tablename ($t should always be the suffix, it is preset above or supplied by the post)
-$tablename = $locations[posts_table].'_'.$t;
+$tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $locations['posts_table']);
 
-// forums cancer
-
-/*
-// did troll try to change their IP?
-if ($_COOKIE['trolololol']) {
-  $query = "select ip from trolls where ip = '" . $remote_addr . "'";
-  $result = mysqli_query($mysqli_link, $query);
-  if (mysqli_num_rows($result) == 0) {
-    $query = "insert into trolls (ip, name, first_troll, last_troll, num_fed, fed_num) values ('" . $remote_addr . "', '" . $message_author . "', now(), now(), 1, 0)";
-    mysqli_query($mysqli_link, $query);
-  }
-}
-
-// is thread a troll?
-if ($thread != '') {
-  $query = "select ip from $tablename where thread = '" . $thread . "' and message_author = '<font color=\"teal\">Troll</font>'";
-  $result = mysqli_query($mysqli_link, $query);
-  if (mysqli_num_rows($result) > 0) {
-    $query = "select ip from trolls where ip = '" . mysqli_result($result, 0, 'ip') . "'";
-    $trollres = mysqli_query($mysqli_link, $query);
-    if (mysqli_num_rows($trollres) > 0) {
-      // don't feed the trolls!
-      $query = "update trolls set fed_num = fed_num + 1 where ip = '" . mysqli_result($result, 0, 'ip') . "'";
-      mysqli_query($mysqli_link, $query);
-      $query = "select * from trolls where ip = '" . $remote_addr . "'";
-      $result = mysqli_query($mysqli_link, $query);
-      if (mysqli_num_rows($result) > 0) {
-	$query = "update trolls set num_fed = num_fed + 1, last_troll = now() where ip = '" . $remote_addr . "'";
-	mysqli_query($mysqli_link, $query);
-      } else {
-	$query = "insert into trolls (ip, name, first_troll, last_troll, num_fed, fed_num) values ('" . $remote_addr . "', '" . $message_author . "', now(), now(), 1, 0)";
-        mysqli_query($mysqli_link, $query);
-      }
-    } // end troll
-    setcookie('trolololol','true',time()+(60*60*24*30),'/');
-    $_COOKIE['trolololol'] = 'true';
-  } // end thread lookup
-} // end thread
-*/
 $user_id = null;
-if (isset($_SESSION[uid]))
-  $user_id = $_SESSION[uid];
+if (isset($_SESSION['uid']))
+  $user_id = $_SESSION['uid'];
 
 // insert the post
-$query = "insert into $tablename (message_author,message_author_email,message_subject,message_body,date,ip,user_id) ".
-	 "values ('".escape(alter_username($message_author))."','".escape($message_author_email)."','".escape($message_subject)."','".escape($message_body)."',now(),'$remote_addr',nullif('$user_id',''))";
-mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+$query = 'insert into ' . $tablename . ' (' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id) ' .
+	 'values (' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""))';
+
+mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
 $insert_id = mysqli_insert_id($mysqli_link);
 
 // preset the link/image enum
 $link = 'n';
 $image = 'n';
-
-/*
-// insert the auth_post id
-if ($authenticated === true && isset($_SESSION[level]) && $_SESSION[level] == 'admin') {
-  $query = "insert into $locations[auth_posts_table] (id, t) values ('$insert_id', '$t')";
-  mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
-}
-*/
 
 // insert the link url
 if (isset($message_link_url) && is_array($message_link_url)) {
@@ -393,26 +269,18 @@ if (isset($message_link_url) && is_array($message_link_url)) {
 
       if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link_url, $youtube_video_id)) {
 
-	//$embed_string = '<br /><object width="640" height="385"><param name="movie" value="http://www.youtube.com/v/'.escape($youtube_video_id[1]).'&rel=1"></param><param name="wmode" value="transparent"></param><embed src="http://www.youtube.com/v/'.escape($youtube_video_id[1]).'&rel=1" type="application/x-shockwave-flash" wmode="transparent" width="640" height="385"></embed></object><br />';
-
-        // append embed string to bottom of message
-	//$query = "update $tablename set message_body = concat(message_body, '$embed_string') where id = '$insert_id'";
-	//mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
-
 	$video = 'y';
 
       }
 
-      $query = "insert into $locations[links_table] (id,t,link_url,link_title) ".
-	       "values ($insert_id,$t,'".escape($link_url)."','".escape($link_title)."')";
-      mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+      $query = 'insert into ' . $locations['links_table'] . ' (id,t,link_url,link_title) ' .
+	       'values (' . $insert_id . ',' . $t . ',"' . escape($link_url) . '","' . escape($link_title) . '")';
+      mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
       $link = 'y';
 
     }
-
   }
-
 }
 
 // insert the image url
@@ -426,51 +294,50 @@ if (isset($message_image_url) && is_array($message_image_url)) {
     if ($image_url != 'http://' && check_url($image_url)) {
 
       // prepend the referral location to the image url if requested
-      if (isset($_POST[use_referral]))
-	$image_url = "$config[referrallocation]?url=$image_url";
+      if (isset($_POST['use_referral']))
+	$image_url = $config['referrallocation'] . '?url=' . $image_url;
 
-      $query = "insert into $locations[images_table] (id,t,image_url) ".
-	       "values ($insert_id,$t,'".escape($image_url)."')";
-      mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+      $query = 'insert into ' . $locations['images_table'] . ' (id,t,image_url) ' .
+	       'values (' . $insert_id . ',' . $t . ',"' . escape($image_url) . '")';
+      mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
       $image = 'y';
 
     }
-
   }
-
 }
 
 // set the parent and thread values
-$query = "update $tablename set ".
-	 "parent = case when '$parent' = '' then $insert_id else '$parent' end, ".
-	 "thread = case when '$thread' = '' then lpad($insert_id,5,'0') else concat('$thread','.',lpad($insert_id,5,'0')) end, ".
-	 "link = '$link', video = '$video', image = '$image' ".
-	 "where id = $insert_id";
-mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+$query = 'update ' . $tablename . ' set ' .
+	 'parent = case when "' . $parent . '" = "" then ' . $insert_id . ' else "' . $parent . '" end, ' .
+	 'thread = case when "' . $thread . '" = "" then lpad(' . $insert_id . ',5,"0") else concat("' . $thread . '",".",lpad(' . $insert_id . ',5,"0")) end, ' .
+	 'link = "' . $link . '", video = "' . $video . '", image = "' . $image . '" ' .
+	 'where id = ' . $insert_id . (!$config['rotate_tables'] ? ' and t = ' . $t : '');
+
+mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
 // account for warning preset
-if (isset($_POST[warning]) && $_POST[warning] != '' && ($_POST[warning] == 'warn-g' || $_POST[warning] == 'warn-n' || $_POST['warning'] == 'nsfw')) {
+if (isset($_POST['warning']) && $_POST['warning'] != '' && ($_POST['warning'] == 'warn-g' || $_POST['warning'] == 'warn-n' || $_POST['warning'] == 'nsfw')) {
 
-  $query = "insert into $locations[flags_table] (id, t, votes, score, type) values ('$insert_id', '$t', 5, 0, '$_POST[warning]')";
+  $query = 'insert into ' . $locations['flags_table'] . ' (id, t, votes, score, type) values ("' . $insert_id . '", "' . $t . '", 5, 0, "' . $_POST['warning'] . '")';
   mysqli_query($mysqli_link, $query);
 
-  $query = "update $tablename set type = '$_POST[warning]' where id = '$insert_id'";
+  $query = 'update ' . $tablename . ' set type = "' . $_POST['warning'] . '" where id = "' . $insert_id . '"' . (!$config['rotate_tables'] ? ' and t = ' . $t : '');
   mysqli_query($mysqli_link, $query);
 
 }
 
 // give the user a cookie for such a good post
-setcookie('cookie_name',$_POST[message_author],time()+(60*60*24*30),'/');
-setcookie('cookie_email',$_POST[message_author_email],time()+(60*60*24*30),'/');
+setcookie('cookie_name',$_POST['message_author'],time()+(60*60*24*30),'/');
+setcookie('cookie_email',$_POST['message_author_email'],time()+(60*60*24*30),'/');
 
 // now for the hard part
 
 // Check for existing $datfile.lock 
-if (file_exists("$locations[datfile].lock")) {
+if (file_exists($locations['datfile'] . '.lock')) {
   for ($i = 0; $i < 3; $i++) {
     sleep(1);
-    if (!file_exists("$locations[datfile].lock"))
+    if (!file_exists($locations['datfile'] . '.lock'))
       break;
   }
 }
@@ -479,100 +346,102 @@ if (file_exists("$locations[datfile].lock")) {
 ignore_user_abort(true);
 
 // create a lock
-touch("$locations[datfile].lock");
+touch($locations['datfile'] . '.lock');
 
 // increment the counter
 $count = 0;
 
-if (file_exists($locations[counter])) {
+if (file_exists($locations['counter'])) {
   // read old count
-  $fp = fopen($locations[counter],'r');
-  $count = fread($fp, filesize($locations[counter]));
+  $fp = fopen($locations['counter'],'r');
+  $count = fread($fp, filesize($locations['counter']));
   fclose($fp);
 }
 
 // reset the counter if it's mtime is not today (new day)
-if (file_exists($locations[counter]) && date('m d y') != date('m d y', filemtime($locations[counter])))
+if (file_exists($locations['counter']) && date('m d y') != date('m d y', filemtime($locations['counter'])))
   $count = 0;
 
 // write count + 1
-$fp = fopen($locations[counter],'w');
+$fp = fopen($locations['counter'],'w');
 fwrite($fp,$count + 1);
 fclose($fp);
 
 // update the last post
-$fp = fopen($locations[lastpost],'w');
+$fp = fopen($locations['lastpost'],'w');
 fwrite($fp,"$insert_id\n$t\n".alter_username(deescape($message_author))."\n".deescape($message_subject)."\n");
 fclose($fp);
 
 // create the forum file
-$fp = fopen($locations[datfile],'w') or error("Unable to open $locations[datfile] for writing",$config[admin_email],"Unable to open $locations[datfile] for writing");
+$fp = fopen($locations['datfile'],'w') or error('Unable to open ' . $locations['datfile'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['datfile'] . ' for writing');
 
 // create the forum_lite file
-$fp_lite = fopen($locations[datfile_lite],'w') or error("Unable to open $locations[datfile_lite] for writing",$config[admin_email],"Unable to open $locations[datfile_lite] for writing");
+$fp_lite = fopen($locations['datfile_lite'],'w') or error('Unable to open ' . $locations['datfile_lite'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['datfile_lite'] . ' for writing');
 
 // create the forum_json file
-$fp_json = fopen($locations[jsonfile],'w') or error("Unable to open $locations[jsonfile] for writing",$config[admin_email],"Unable to open $locations[jsonfile] for writing");
+$fp_json = fopen($locations['jsonfile'],'w') or error('Unable to open ' . $locations['jsonfile'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['jsonfile'] . ' for writing');
 
 // re-setup the table rotation scheme
-if ($config[rotate_tables] == 'daily')
+if ($config['rotate_tables'] == 'daily')
   $t = date('mdy');
-elseif ($config[rotate_tables] == 'weekly')
+elseif ($config['rotate_tables'] == 'weekly')
   $t = strftime('%y%W');
-elseif ($config[rotate_tables] == 'monthly')
+elseif ($config['rotate_tables'] == 'monthly')
   $t = date('my');
-elseif ($config[rotate_tables] == 'yearly')
+elseif ($config['rotate_tables'] == 'yearly')
   $t = date('Y');
 else
   $t = date('mdy');
 
 // reset the table name
-$tablename = $locations[posts_table].'_'.$t;
+$tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $locations['posts_table']);
 
 // query for the rows to output
-$query = "select $tablename.id,$tablename.parent,$tablename.thread,$tablename.message_author,$tablename.message_subject, ".
-	 "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date, date_format($tablename.date, '%l:%i:%s %p') as date_sm, '$t' as t, ".
-	 "$tablename.link, $tablename.image, $tablename.video, ifnull($tablename.score, 'null') as score, ifnull($tablename.type, 'null') as type, ".
-	 "case when $tablename.message_body = '' then 'n' else 'y' end as body, $tablename.message_body ".
-	 "from $tablename ".
-	 "where unix_timestamp($tablename.date) > (unix_timestamp(now()) - $config[displaytime]) ".
-	 "order by $tablename.parent desc,$tablename.thread asc limit $config[maxrows]";
+$query = 'select ' . $tablename . '.id, ' . $tablename . '.parent, ' . $tablename . '.thread, ' . $tablename . '.message_author, ' . $tablename . '.message_subject, ' .
+	 'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, date_format(' . $tablename . '.date, "%l:%i:%s %p") as date_sm, "' . $t . '" as t, ' .
+	 $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	 'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' . $tablename . '.message_body ' .
+	 'from ' . $tablename . ' ' .
+	 'where unix_timestamp(' . $tablename . '.date) > (unix_timestamp(now()) - ' . $config['displaytime'] . ') ' .
+	 (!$config['rotate_tables'] ? ' and t = ' . $t . ' ' : '') .
+	 'order by ' . $tablename . '.parent desc, ' . $tablename . '.thread asc limit ' . $config['maxrows'];
 
 // see if we need to bond another table
-if (($config[rotate_tables] == 'daily' && date('mdy',time() - $config[displaytime]) != date('mdy')) ||
-    ($config[rotate_tables] == 'weekly' && strftime('%y%W',time() - $config[displaytime]) != strftime('%y%W')) ||
-    ($config[rotate_tables] == 'monthly' && date('my',time() - $config[displaytime]) != date('my')) ||
-    ($config[rotate_tables] == 'yearly' && date('Y',time() - $config[displaytime]) != date('Y')) ||
-    (date('mdy',time() - $config[displaytime]) != date('mdy'))) {
+if (($config['rotate_tables'] == 'daily' && date('mdy',time() - $config['displaytime']) != date('mdy')) ||
+    ($config['rotate_tables'] == 'weekly' && strftime('%y%W',time() - $config['displaytime']) != strftime('%y%W')) ||
+    ($config['rotate_tables'] == 'monthly' && date('my',time() - $config['displaytime']) != date('my')) ||
+    ($config['rotate_tables'] == 'yearly' && date('Y',time() - $config['displaytime']) != date('Y')) ||
+    (date('mdy',time() - $config['displaytime']) != date('mdy'))) {
 
-  if ($config[rotate_tables] == 'daily')
-    $t = date('mdy', time() - $config[displaytime]);
-  elseif ($config[rotate_tables] == 'weekly')
-    $t = strftime('%y%W', time() - $config[displaytime]);
-  elseif ($config[rotate_tables] == 'monthly')
-    $t = date('my', time() - $config[displaytime]);
-  elseif ($config[rotate_tables] == 'yearly')
-    $t = date('Y', time() - $config[displaytime]);
+  if ($config['rotate_tables'] == 'daily')
+    $t = date('mdy', time() - $config['displaytime']);
+  elseif ($config['rotate_tables'] == 'weekly')
+    $t = strftime('%y%W', time() - $config['displaytime']);
+  elseif ($config['rotate_tables'] == 'monthly')
+    $t = date('my', time() - $config['displaytime']);
+  elseif ($config['rotate_tables'] == 'yearly')
+    $t = date('Y', time() - $config['displaytime']);
   else
-    $t = date('mdy', time() - $config[displaytime]);
+    $t = date('mdy', time() - $config['displaytime']);
 
-  $tablename = $locations[posts_table].'_'.$t;
+  $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $locations['posts_table']);
 
-  $query = "(".$query.") union (".
-	   "select $tablename.id,$tablename.parent,$tablename.thread,$tablename.message_author,$tablename.message_subject, ".
-	   "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date, date_format($tablename.date, '%l:%i:%s %p') as date_sm, '$t' as t, ".
-	   "$tablename.link, $tablename.image, $tablename.video, ifnull($tablename.score, 'null') as score, ifnull($tablename.type, 'null') as type, ".
-	   "case when $tablename.message_body = '' then 'n' else 'y' end as body, $tablename.message_body ".
-	   "from $tablename ".
-	   "where unix_timestamp($tablename.date) > (unix_timestamp(now()) - $config[displaytime]) ".
-	   "order by $tablename.parent desc,$tablename.thread asc limit $config[maxrows]".
-	   ") order by t desc, parent desc, thread asc limit $config[maxrows]";
+  $query = '(' . $query . ') union (' .
+	   'select ' . $tablename . '.id,' . $tablename . '.parent,' . $tablename . '.thread,' . $tablename . '.message_author,' . $tablename . '.message_subject, ' .
+	   'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, date_format(' . $tablename . '.date, "%l:%i:%s %p") as date_sm, "' . $t . '" as t, ' .
+	   $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	   'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' . $tablename . '.message_body ' .
+	   'from ' . $tablename . ' ' .
+	   'where unix_timestamp(' . $tablename . '.date) > (unix_timestamp(now()) - ' . $config['displaytime'] . ') ' .
+	   (!$config['rotate_tables'] ? ' and t = ' . $t . ' ' : '') .
+	   'order by ' . $tablename . '.parent desc,' . $tablename . '.thread asc limit ' . $config['maxrows'] . ' ' .
+	   ') order by t desc, parent desc, thread asc limit ' . $config['maxrows'];
 }
 
-$results = mysqli_query($mysqli_link, $query) or error($config[db_errstr],$config[admin_email],$query."\n".mysqli_error());
+$results = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
 if (mysqli_num_rows($results) == 0)
-  error('',$config[admin_email],'ERROR: No rows to output');
+  error('',$config['admin_email'],'ERROR: No rows to output');
 
 $lastthread = array();
 $lastnormalthread = null;
@@ -595,10 +464,10 @@ $sizes[6] = 'xx-large';
 while ($posts = mysqli_fetch_array($results)) {
 
   // test to see if current row is a new thread, increment $threads if so
-  if (array_shift(explode('.',$posts[thread])) != $lastthread[0]) {
+  if (array_shift(explode('.',$posts['thread'])) != $lastthread[0]) {
 
     // ignore rows that are new threads and are not the parent
-    if (count(explode('.',$posts[thread])) != 1)
+    if (count(explode('.',$posts['thread'])) != 1)
       continue;
     else
       $threads++;
@@ -609,40 +478,40 @@ while ($posts = mysqli_fetch_array($results)) {
   }
 
   // find difference between these arrays, returns an array
-  if ($threads <= $config[maxthreads]) {
-    fputs($fp,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts[thread])))));
+  if ($threads <= $config['maxthreads']) {
+    fputs($fp,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread'])))));
   }
-  if ($threads <= $config[maxthreadslite])
-    fputs($fp_lite,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts[thread])))));
+  if ($threads <= $config['maxthreadslite'])
+    fputs($fp_lite,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread'])))));
 
-  $lastthread = explode('.',$posts[thread]);
+  $lastthread = explode('.',$posts['thread']);
 
-  if ($threads == $config[maxthreadslite])
+  if ($threads == $config['maxthreadslite'])
     $lastlitethread = $lastthread;
 
-  if ($threads == $config[maxthreads])
+  if ($threads == $config['maxthreads'])
     $lastnormalthread = $lastthread;
 
 
   // build the rate string (i.e. "Warning - Gross")
   $display_rate = null;
-  if ($posts[score] != 'null' || ($posts[type] != 'null' && $posts[type] != '')) {
-    switch ($posts[type]) {
+  if ($posts['score'] != 'null' || ($posts['type'] != 'null' && $posts['type'] != '')) {
+    switch ($posts['type']) {
 	case 'warn-g':
-	  $posts[type] = "<b style='color: red; font-size: larger'>Warning</b> - Gross";
+	  $posts['type'] = "<b style='color: red; font-size: larger'>Warning</b> - Gross";
 	  break;
 	case 'warn-n':
-	  $posts[type] = "<b style='color: red; font-size: larger'>Warning</b> - Nudity";
+	  $posts['type'] = "<b style='color: red; font-size: larger'>Warning</b> - Nudity";
 	  break;
 	case 'nsfw':
-	  $posts[type] = "<b style='color: red; font-size: larger'>NSFW</b>";
+	  $posts['type'] = "<b style='color: red; font-size: larger'>NSFW</b>";
 	  break;
 	  }
 
     $display_rate = " - <span style='font-size: smaller'>( ";
-    if ($posts[score] != 'null') $display_rate .= $posts[score];
-    if ($posts[score] != 'null' && $posts[type] != 'null' && $posts[type] != '') $display_rate .= ', ' . ucfirst($posts[type]);
-    if ($posts[score] == 'null') $display_rate .= ucfirst($posts[type]);
+    if ($posts['score'] != 'null') $display_rate .= $posts['score'];
+    if ($posts['score'] != 'null' && $posts['type'] != 'null' && $posts['type'] != '') $display_rate .= ', ' . ucfirst($posts['type']);
+    if ($posts['score'] == 'null') $display_rate .= ucfirst($posts['type']);
     $display_rate .= ' )</span>';
   }
 
@@ -653,23 +522,16 @@ while ($posts = mysqli_fetch_array($results)) {
   else
   {
     // only show the date for the first post of the thread
-    if ($posts[id] == $posts[parent]) $display_date = ' - ' . $posts[date_sm];
+    if ($posts['id'] == $posts['parent']) $display_date = ' - ' . $posts['date_sm'];
     else $display_date = null;
   }
 
-  if ($threads <= $config[maxthreads]) {
-
-    // don't feed the trolls
-    if ($posts[id] == $posts[parent] && $posts[message_author] == 'nasirichampang')
-      $parent_author = 'troll';
-
-    if ($parent_author == 'troll' && $posts[message_author] != 'nasirichampang')
-      $posts['message_subject'] = "Aren't you banned yet?";
+  if ($threads <= $config['maxthreads']) {
 
     fputs($fp,
-	  "<ul><li><a href='$locations[forum]?d=$posts[id]&amp;t=$posts[t]' title='$posts[date]'>$posts[message_subject]</a> ".
-	  options($posts[link],$posts[video],$posts[image],$posts[body],$posts[message_author]).
-	  " - <b>$posts[message_author]</b>$display_date$display_rate"
+	  '<ul><li><a href="' . $locations['forum'] . '?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
 	  );
 
     $thispost = array(
@@ -688,7 +550,7 @@ while ($posts = mysqli_fetch_array($results)) {
     );
 
     if ($posts['link'] == 'y') {
-      $query = "select link_url, link_title from $locations[links_table] where t = '$posts[t]' and id = '$posts[id]'";
+      $query = 'select link_url, link_title from ' . $locations['links_table'] . ' where t = "' . $posts['t'] . '" and id = "' . $posts['id'] . '"';
       $jsonlinkresult = mysqli_query($mysqli_link, $query);
       $thislinks = array();
       while ($thislink = mysqli_fetch_array($jsonlinkresult)) {
@@ -698,7 +560,7 @@ while ($posts = mysqli_fetch_array($results)) {
     }
 
     if ($posts['image'] == 'y') {
-      $query = "select image_url from $locations[images_table] where t = '$posts[t]' and id = '$posts[id]'";
+      $query = 'select image_url from ' . $locations['images_table'] . ' where t = "' . $posts['t'] . '" and id = "' . $posts['id'] . '"';
       $jsonimageresult = mysqli_query($mysqli_link, $query);
       $thisimages = array();
       while ($thisimage = mysqli_fetch_array($jsonimageresult)) {
@@ -711,28 +573,27 @@ while ($posts = mysqli_fetch_array($results)) {
 
   }
 
-  if ($threads <= $config[maxthreadslite]) {
+  if ($threads <= $config['maxthreadslite']) {
     fputs($fp_lite,
-	  "<ul><li><a href='$locations[forum]?d=$posts[id]&amp;t=$posts[t]'>$posts[message_subject]</a> ".
-	  options($posts[link],$posts[video],$posts[image],$posts[body],$posts[message_author]).
-	  " - <b>$posts[message_author]</b>$display_date$display_rate"
+	  '<ul><li><a href="' . $locations['forum'] . '?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
 	  );
   }
-
 }
 
 fputs($fp_json, json_encode($json));
 
 if (is_array($lastnormalthread)) {
-  fputs($fp,str_repeat("</li></ul>",count($lastnormalthread)));
+  fputs($fp,str_repeat('</li></ul>',count($lastnormalthread)));
 } else {
-  fputs($fp,str_repeat("</li></ul>",count($lastthread)));
+  fputs($fp,str_repeat('</li></ul>',count($lastthread)));
 }
 
 if (is_array($lastlitethread))
-  fputs($fp_lite,str_repeat("</li></ul>",count($lastlitethread)));
+  fputs($fp_lite,str_repeat('</li></ul>',count($lastlitethread)));
 else
-  fputs($fp_lite,str_repeat("</li></ul>",count($lastthread)));
+  fputs($fp_lite,str_repeat('</li></ul>',count($lastthread)));
 
 // close the forum file
 fclose($fp);
@@ -740,13 +601,13 @@ fclose($fp_lite);
 fclose($fp_json);
 
 // remove the lock
-unlink("$locations[datfile].lock");
+unlink($locations['datfile'] . '.lock');
 
 // we're done!
-if (!isset($_POST["beta"])) {
-  header("Location: $locations[forum]");
+if (!isset($_POST['beta'])) {
+  header('Location: ' . $locations['forum']);
 } else {
-  print "OK";
+  print 'OK';
 }
 exit(0);
 
@@ -754,7 +615,7 @@ exit(0);
 function check_url($url) {
   $parsed_url = array();
   $parsed_url = parse_url($url);
-  if (!($parsed_url[scheme] && $parsed_url[host]) || $parsed_url[scheme] == 'file')
+  if (!($parsed_url['scheme'] && $parsed_url['host']) || $parsed_url['scheme'] == 'file')
     return false;
   else
     return true;
@@ -878,9 +739,7 @@ function parse_embed($text) {
 function ban() {
   global $locations, $config;
   setcookie('chocolate',time(),time() * (60*60*24*365),'/');
-  #sleep(10);
-  #mail($config[admin_email],"Error in $_SERVER[SCRIPT_FILENAME]","User '$_POST[message_author]' is banned [$_SERVER[REMOTE_ADDR]\n","From: \"Script Debugging SubSystem\" <$config[admin_email]>\n");
-  header("Location: $locations[forum]");
+  header('Location: ' . $locations['forum']);
   exit();
 }
 
