@@ -336,7 +336,7 @@ Type:
 		if (isset($json))
 		{
 			print '<div style="max-height:' . $json->height . 'px; max-width:' . $json->width . 'px">' . $json->html . '</div>';
-			print '<br />';
+			print '<br /><br />';
 		}
 	  } elseif (preg_match('/\.mp4$/i', $image['image_url'])) {
 	      echo "<video autoplay='' loop='' muted=''><source src='" , $image['image_url'] , "' type='video/mp4'></video><br /><a href='" , $image['image_url'] , "'>source</a><br /><br />\n";
@@ -392,7 +392,7 @@ Type:
           print $json->html;
           print '<br />';
         }
-      } elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
+      } elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com(\/\b\w*\b)\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
         $apiurl = 'https://api.instagram.com/oembed?url=';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
