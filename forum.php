@@ -158,7 +158,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 <?
 
 // display the thread
-if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numeric($_GET['t'])) {
+if (isset($_GET['d']) && is_numeric($_GET['d']) || isset($_GET['t']) && is_numeric($_GET['t'])) {
 
   // set up the DB connection
   if (!isset($mysqli_link)) {
@@ -168,12 +168,14 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
   // preset the table name
   $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$_GET['t'] : $locations['posts_table']);
 
+if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numeric($_GET['t'])) {
+
   // query for the post
-  $query = "select $tablename.id, $tablename.parent, $tablename.message_author, $tablename.message_author_email, ".
-	   "$tablename.message_subject, $tablename.message_body, date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date, ".
-	   "$tablename.ip, $tablename.thread, $tablename.link, $tablename.image, $tablename.video ".
-	   "from $tablename ".
-	   "where id = " . $_GET['d'] . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
+  $query = 'select ' . $tablename . '.id, ' . $tablename . '.parent, ' . $tablename . '.message_author, ' . $tablename . '.message_author_email, ' .
+	   $tablename . '.message_subject, ' . $tablename . '.message_body, date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, ' .
+	   $tablename . '.ip, ' . $tablename . '.thread, ' . $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video ' .
+	   'from ' . $tablename . ' ' .
+	   'where id = ' . $_GET['d'] . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '');
 
   $result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -464,12 +466,12 @@ Type:
     <td colspan='2'>
 <?
 
-    $query = "select $tablename.id, $tablename.message_author, $tablename.message_subject, $tablename.thread, ".
-	     "$tablename.link, $tablename.image, $tablename.video, ifnull($tablename.score, 'null') as score, ifnull($tablename.type, 'null') as type, ".
-	     "case when $tablename.message_body = '' then 'n' else 'y' end as body, ".
-	     "date_format($tablename.date,'%m/%d/%Y - %l:%i:%s %p') as date ".
-	     "from $tablename where $tablename.parent = '" . $post['parent'] . "' and $tablename.thread like '" . $post['thread'] . ".%' " . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '') . ' ' .
-	     "order by $tablename.parent desc,$tablename.thread asc";
+    $query = 'select ' . $tablename . '.id, ' . $tablename . '.message_author, ' . $tablename . '.message_subject, ' . $tablename . '.thread, ' .
+	     $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	     'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' .
+	     'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date ' .
+	     'from ' . $tablename . ' where ' . $tablename . '.parent = "' . $post['parent'] . '" and ' . $tablename . '.thread like "' . $post['thread'] . '.%" ' . (!$config['rotate_tables'] ? ' and t = "' . $_GET['t'] . '"' : '') . ' ' .
+	     'order by ' . $tablename . '.parent desc,' . $tablename . '.thread asc';
 
     $replies = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -534,6 +536,156 @@ Type:
     print "Post not found\n";
 
   }
+
+} elseif (isset($_GET['t']) && is_numeric($_GET['t'])) {
+
+?>
+<table width='100%' border='0' cellpadding='0' cellspacing='0' id='boardheader'>
+  <tr>
+    <td class='borderoutline'>
+<table width='100%' border='0' cellpadding='4' cellspacing='1'>
+  <tr class='title'>
+    <td colspan='2'><?=$config['title']?></td>
+  </tr>
+  <tr class='main'>
+    <td class='menu'>
+    <a href='#recent_messages'><b>Read Messages</b></a><br />
+    <a href='#post_a_message'><b>Post a Message</b></a><br />
+    <a href='<?=$locations['search']?>'><b>Search</b></a><br />
+    <a href='<?=$locations['image_browser']?>'><b>Image Browser</b></a><br />
+<? if ($config['auth_required'] == true) { print "<a href='" . $locations['logout'] . "'><b>Logout</b></a><br />"; } ?>
+    </td>
+    <td rowspan='2' class='info'>
+    <div align='center'><a href='http://www.angryhosting.com'><img src='<?=$config['logo']?>' alt='Message Board provided by AngryHosting.com!' border='0' /></a></div>
+    <br /><b>Forum Guidelines</b><br />
+<?=$config['guidelines']?>
+    </td>
+  </tr>
+  <tr class='main'>
+    <td class='menu'>
+      <!-- NEWS ITEMS -->
+      <?=$config['newsitem']?>
+    </td>
+  </tr>
+  <tr class='title'>
+    <td colspan='2'><a name='recent_messages'>Messages</a></td>
+  </tr>
+  <tr class='main'>
+    <td colspan='2'>
+<?
+  $timestamp = DateTime::createFromFormat('mdy', $_GET['t'])->getTimestamp();
+  print "Now showing messages from ".date('m/d/Y', $timestamp)."\n";
+?>
+   <!-- (<a href='<?=$locations['forum']?>?display_mode=1&t=<?=$_GET['t']?>'>Go to Lite Mode</a>) --> <br /><br />
+<?
+
+$data = '';
+
+// re-setup the table rotation scheme
+if ($config['rotate_tables'] == 'daily')
+  $t = date('mdy', $timestamp);
+elseif ($config['rotate_tables'] == 'weekly')
+  $t = strftime('%y%W', $timestamp);
+elseif ($config['rotate_tables'] == 'monthly')
+  $t = date('my', $timestamp);
+elseif ($config['rotate_tables'] == 'yearly')
+  $t = date('Y', $timestamp);
+else
+  $t = date('mdy', $timestamp);
+
+// reset the table name
+$tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $locations['posts_table']);
+
+// query for the rows to output
+$query = 'select ' . $tablename . '.id, ' . $tablename . '.parent, ' . $tablename . '.thread, ' . $tablename . '.message_author, ' . $tablename . '.message_subject, ' .
+	 'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, date_format(' . $tablename . '.date, "%l:%i:%s %p") as date_sm, "' . $t . '" as t, ' .
+	 $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	 'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' . $tablename . '.message_body ' .
+	 'from ' . $tablename . ' ' .
+	 (!$config['rotate_tables'] ? ' where t = ' . $t . ' ' : '') .
+	 'order by ' . $tablename . '.parent desc, ' . $tablename . '.thread asc';
+
+$results = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+
+if (mysqli_num_rows($results) == 0)
+  error('',$config['admin_email'],'ERROR: No rows to output');
+
+$lastthread = array();
+
+$count = mysqli_num_rows($results);
+
+while ($posts = mysqli_fetch_array($results)) {
+
+  // find difference between these arrays, returns an array
+  $data .= str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread']))));
+
+  $lastthread = explode('.',$posts['thread']);
+
+  // build the rate string (i.e. "Warning - Gross")
+  $display_rate = null;
+  if ($posts['score'] != 'null' || ($posts['type'] != 'null' && $posts['type'] != '')) {
+    switch ($posts['type']) {
+	case 'warn-g':
+	  $posts['type'] = "<b style='color: red; font-size: larger'>Warning</b> - Gross";
+	  break;
+	case 'warn-n':
+	  $posts['type'] = "<b style='color: red; font-size: larger'>Warning</b> - Nudity";
+	  break;
+	case 'nsfw':
+	  $posts['type'] = "<b style='color: red; font-size: larger'>NSFW</b>";
+	  break;
+	  }
+
+    $display_rate = " - <span style='font-size: smaller'>( ";
+    if ($posts['score'] != 'null') $display_rate .= $posts['score'];
+    if ($posts['score'] != 'null' && $posts['type'] != 'null' && $posts['type'] != '') $display_rate .= ', ' . ucfirst($posts['type']);
+    if ($posts['score'] == 'null') $display_rate .= ucfirst($posts['type']);
+    $display_rate .= ' )</span>';
+  }
+
+  if ($config['always_display_date_full'])
+    $display_date = ' - ' . $posts['date'];
+  elseif ($config['always_display_date_small'])
+    $display_date = ' - ' . $posts['date_sm'];
+  else
+  {
+    // only show the date for the first post of the thread
+    if ($posts['id'] == $posts['parent']) $display_date = ' - ' . $posts['date_sm'];
+    else $display_date = null;
+  }
+
+  $data .= '<ul><li><a href="' . $locations['forum'] . '?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
+	   options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	   ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate;
+
+}
+
+$data .= str_repeat('</li></ul>',count($lastthread));
+
+  print "Total posts today: <b>$count</b><br />\n";
+
+?>
+    <div align='center'>
+    [<a href='#post_a_message'><b>Post a Message</b></a>]
+    [<a href='<?=$locations['faq']?>' target='faq'><b>Message Board FAQ</b></a>]
+    [<a href='<?=$locations['search']?>'><b>Search</b></a>]
+    [<a href='<?=$locations['image_browser']?>'><b>Image Browser</b></a>]
+<? if ($config['auth_required'] == true) { print "[<a href='" . $locations['logout'] . "'><b>Logout</b></a>]"; } ?>
+<? if ($config['auth_post_required'] == true && isset($_SESSION['uid']) && isset($_SESSION['authkey'])) { print "[<a href='" . $locations['forum'] . "?logout'><b>Logout</b></a>] [<a href='" . $locations['admin'] . "' onclick=\"window.open('" . $locations['admin'] . "' , 'admin' , 'toolbar=no, directories=no, location=no, resizable=no, status=yes, menubar=yes, scrollbars=no, width=300, height=200'); return false\"><b>Account Admin</b></a>]"; } ?>
+    [<a href='<?=$locations['forum']?>'><b>Refresh</b></a>]
+    </div>
+    </td>
+  </tr>
+</table>
+    </td>
+  </tr>
+</table>
+<br />
+<?php
+
+  print $data;
+
+}
 
 } elseif ((isset($_GET['display_mode']) && $_GET['display_mode'] == 1) ||
 	 (isset($_COOKIE['display_mode']) && $_COOKIE['display_mode'] == 1)) {
