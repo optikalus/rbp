@@ -60,9 +60,9 @@ if ($config['allow_tor'] === false) {
   $octets = array();
   preg_match('/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/', $_SERVER['REMOTE_ADDR'], $octets);
 
-  $host = $octets[4] . "." . $octets[3] . "." . $octets[2] . "." . $octets[1] . ".80.210.204.180.66.ip-port.exitlist.torproject.org";
+  $host = $octets[4] . "." . $octets[3] . "." . $octets[2] . "." . $octets[1] . ".443.209.204.180.66.ip-port.exitlist.torproject.org";
   if (gethostbyname($host) == '127.0.0.2') {
-    $_POST['message_author'] = 'Charles';
+    $_POST['message_author'] = 'Troll';
   }
 }
 
@@ -322,7 +322,7 @@ if (isset($_POST['warning']) && $_POST['warning'] != '' && ($_POST['warning'] ==
   $query = 'insert into ' . $locations['flags_table'] . ' (id, t, votes, score, type) values ("' . $insert_id . '", "' . $t . '", 5, 0, "' . $_POST['warning'] . '")';
   mysqli_query($mysqli_link, $query);
 
-  $query = 'update ' . $tablename . ' set type = "' . $_POST['warning'] . '" where id = "' . $insert_id . '"' . (!$config['rotate_tables'] ? ' and t = ' . $t : '');
+  $query = 'update ' . $tablename . ' set type = "' . $_POST['warning'] . '" where id = "' . $insert_id . '"' . (!$config['rotate_tables'] ? ' and t = "' . $t . '"' : '');
   mysqli_query($mysqli_link, $query);
 
 }
