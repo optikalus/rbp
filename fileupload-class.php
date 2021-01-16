@@ -292,6 +292,7 @@ class uploader {
         $image = $image_p;
       }
 
+/*
       switch ($exif['Orientation']) {
         case 3:
           $image = imagerotate($image, 180, 0);
@@ -303,6 +304,7 @@ class uploader {
           $image = imagerotate($image, 98, 0);
           break;
       }
+ */
 
       // write exif stripped / resized image
       imagejpeg($image, $this->file['tmp_name'], 90);
