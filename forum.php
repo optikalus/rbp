@@ -394,9 +394,11 @@ Type:
           print $json->html;
           print '<br />';
         }
-      } elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com(\/.+)*\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
-        $apiurl = 'https://api.instagram.com/oembed?url=';
+      } elseif (preg_match('/(?:https?:\/\/)(?:www.)?(?:(?:instagram.com(?:\/.+)*\/(?:p|(?:tv))\/)|(?:instagr.am\/p\/))/', $link['link_url'])) {
+        $apiurl = 'https://graph.facebook.com/instagram_oembed?url=';
         $ch = curl_init();
+        $authorization = 'Authorization: Bearer AppID|ClientToken';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array($authorization));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
