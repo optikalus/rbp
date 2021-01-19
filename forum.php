@@ -394,9 +394,11 @@ Type:
           print $json->html;
           print '<br />';
         }
-      } elseif (preg_match('/(https?:\/\/)(www.)?((instagram.com(\/.+)*\/p\/)|(instagr.am\/p\/))/', $link['link_url'])) {
-        $apiurl = 'https://api.instagram.com/oembed?url=';
+      } elseif (preg_match('/(?:https?:\/\/)(?:www.)?(?:(?:instagram.com(?:\/.+)*\/(?:p|(?:tv))\/)|(?:instagr.am\/p\/))/', $link['link_url'])) {
+        $apiurl = 'https://graph.facebook.com/instagram_oembed?url=';
         $ch = curl_init();
+        $authorization = 'Authorization: Bearer AppID|ClientToken';
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array($authorization));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -425,22 +427,53 @@ Type:
 			print 'Alt: ' . $json->alt . '<br />';
 		}
 	  }	elseif (preg_match('/https?:\/\/.+facebook\.com\/.+/',  $link['link_url'])) {
-		$ch = curl_init();
-		$ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
-		curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($ch, CURLOPT_URL,('https://www.facebook.com/plugins/post/oembed.json/?url=' . urlencode($link['link_url'])));
-		$result=curl_exec($ch);
-		curl_close($ch);
-		$json = json_decode($result);
-		if (isset($json))
-		{
-			print $json->html;
-			print '<br />';
-		}
-	  }
+      $apiurl = 'https://graph.facebook.com/oembed_page?url=';
+      //if the post type, we need to change the API URL
+      if(preg_match('/https?:\/\/.+facebook\.com\/(?:.+)?(?:posts|activity|photo|permalink|media|questions|notes)/',  $link['link_url']))
+      {
+        $apiurl = 'https://graph.facebook.com/oembed_post?url='
+      }
+      //if video post type, we need to change the API URL
+      if(preg_match('/https?:\/\/.+facebook\.com\/(?:.+)?(?:video)/',  $link['link_url']))
+      {
+        $apiurl = 'https://graph.facebook.com/oembed_video?url='
+      }
+      $ch = curl_init();
+		  $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
+      $authorization = 'Authorization: Bearer AppID|ClientToken';
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array($authorization));
+      curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
+		  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		  curl_setopt($ch, CURLOPT_URL,($apiurl . urlencode($link['link_url'])));
+		  $result=curl_exec($ch);
+		  curl_close($ch);
+		  $json = json_decode($result);
+		  if (isset($json))
+		  {
+			  print $json->html;
+			  print '<br />';
+		  }
+    }
+    elseif (preg_match('/https?:\/\/(?:www\.)(?:tiktok.com\/@.*)/',  $link['link_url'])) {
+      $ch = curl_init();
+      $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
+      curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+      curl_setopt($ch, CURLOPT_URL,('https://www.tiktok.com/oembed?url=' . urlencode($link['link_url'])));
+      $result=curl_exec($ch);
+      curl_close($ch);
+      $json = json_decode($result);
+      if (isset($json))
+      {
+        print $json->html;
+        print '<br />';
+      }
+    }
+
 	    print "<a href='" . preg_replace('/\'/', '&#039;', $link['link_url']) . "' target='" . $post['id'] . "." . $_GET['t'] . "'>";
 	    if (strlen($link['link_title']) > 0)
 	      print $link['link_title'];
