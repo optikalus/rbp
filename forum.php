@@ -397,8 +397,7 @@ Type:
       } elseif (preg_match('/(?:https?:\/\/)(?:www.)?(?:(?:instagram.com(?:\/.+)*\/(?:p|(?:tv))\/)|(?:instagr.am\/p\/))/', $link['link_url'])) {
         $apiurl = 'https://graph.facebook.com/instagram_oembed?url=';
         $ch = curl_init();
-        $authorization = 'Authorization: Bearer AppID|ClientToken';
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array($authorization));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array($config['fb-client-access-token']));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -440,8 +439,7 @@ Type:
       }
       $ch = curl_init();
 		  $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
-      $authorization = 'Authorization: Bearer AppID|ClientToken';
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array($authorization));
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array($config['fb-client-access-token']));
       curl_setopt($ch, CURLOPT_USERAGENT, $ua);	
 		  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 		  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
