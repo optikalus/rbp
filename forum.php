@@ -430,12 +430,12 @@ Type:
       //if the post type, we need to change the API URL
       if(preg_match('/https?:\/\/.+facebook\.com\/(?:.+)?(?:posts|activity|photo|permalink|media|questions|notes)/',  $link['link_url']))
       {
-        $apiurl = 'https://graph.facebook.com/oembed_post?url='
+        $apiurl = 'https://graph.facebook.com/oembed_post?url=';
       }
       //if video post type, we need to change the API URL
       if(preg_match('/https?:\/\/.+facebook\.com\/(?:.+)?(?:video)/',  $link['link_url']))
       {
-        $apiurl = 'https://graph.facebook.com/oembed_video?url='
+        $apiurl = 'https://graph.facebook.com/oembed_video?url=';
       }
       $ch = curl_init();
 		  $ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.16 (KHTML, like Gecko) \ Chrome/24.0.1304.0 Safari/537.16';
