@@ -30,6 +30,7 @@ $locations['faq'] = '/faq.php';
 $locations['image_browser'] = '/image_browser.php';
 $locations['attachimage'] = '/attachimage.php';
 $locations['css'] = '/styles.css';
+$locations['css-dark'] = '/styles-dark.css';
 $locations['login'] = '/login.php';
 $locations['logout'] = '/logout.php';
 $locations['session_path'] = '../sessions';
@@ -82,6 +83,9 @@ $config['require_captcha'] = false;
 $config['recaptcha_url'] = '';
 $config['recaptcha_key'] = '';
 $config['recaptcha_secret'] = '';
+
+// security tokens
+$config['fb-client-access-token'] = 'Authorization: Bearer AppID|ClientToken';
 
 // proxy users
 $config['proxy_users'] = array();
