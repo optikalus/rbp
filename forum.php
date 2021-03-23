@@ -376,7 +376,7 @@ Type:
 	    $vimeo_video_id = null;
 		$xkcd_data_id = null;
 		$twitter_url = null;
-      if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $link['link_url'], $youtube_video_id)) {
+      if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/|youtube\.com/shorts/)([^"&?/ ]{11})%i', $link['link_url'], $youtube_video_id)) {
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
