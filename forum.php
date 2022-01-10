@@ -394,7 +394,7 @@ Type:
           print $json->html;
           print '<br />';
         }
-      } elseif (preg_match('/(?:https?:\/\/)(?:www.)?(?:(?:instagram.com(?:\/.+)*\/(?:p|(?:tv))\/)|(?:instagr.am\/p\/))/', $link['link_url'])) {
+      } elseif (preg_match('/(?:https?:\/\/)(?:www.)?(?:(?:instagram.com(?:\/.+)*\/(?:p|(?:tv)|(?:reel))\/)|(?:instagr.am\/p\/))/', $link['link_url'])) {
         $apiurl = 'https://graph.facebook.com/instagram_oembed?url=';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_HTTPHEADER, array($config['fb-client-access-token']));
