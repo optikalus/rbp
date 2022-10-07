@@ -1,4 +1,4 @@
-<?
+<?php
 
 // message board script v.3
 
@@ -22,11 +22,20 @@ if (!isset($_POST['message_author']) || !isset($_POST['message_author_email']) |
 }
 
 $remote_addr = $_SERVER['REMOTE_ADDR'];
+$banned_user = 'n';
 
 // check banned list
 if (isset($banned) && is_array($banned)) {
 
-  if (in_array(strtolower($_POST['message_author']), $banned['usernames'])) ban();
+  if (isset($banned['usernames']) && isset($banned['usernames'][strtolower($_POST['message_author'])])) ban();
+
+  //if (in_array($_SERVER['HTTP_USER_AGENT'], $banned['agents'])) ban();
+
+  if (isset($banned['agents'])) {
+    foreach ($banned['agents'] as $agent => $value) {
+      if (strpos($_SERVER['HTTP_USER_AGENT'], $agent) === 0) ban();
+    }
+  }
 
   if (isset($banned['ips'])) {
     foreach ($banned['ips'] as $ip => $value) {
@@ -57,6 +66,9 @@ if (isset($_SERVER['HTTP_COMING_FROM']) ||
 
 if ($config['allow_tor'] === false) {
 
+  if (exec("egrep '^" . $_SERVER['REMOTE_ADDR'] . "$' " . $config['tor_exits'])) ban();
+
+  /*
   $octets = array();
   preg_match('/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/', $_SERVER['REMOTE_ADDR'], $octets);
 
@@ -64,6 +76,7 @@ if ($config['allow_tor'] === false) {
   if (gethostbyname($host) == '127.0.0.2') {
     $_POST['message_author'] = 'Troll';
   }
+  */
 }
 
 // image verification
@@ -240,9 +253,16 @@ $user_id = null;
 if (isset($_SESSION['uid']))
   $user_id = $_SESSION['uid'];
 
+// deny spam
+if ($_POST['warning'] == 'bot') {
+  sleep(1);
+  header('Location: ' . $locations['forum']);
+  exit;
+}
+
 // insert the post
-$query = 'insert into ' . $tablename . ' (' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id) ' .
-	 'values (' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""))';
+$query = 'insert into ' . $tablename . ' (' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id,banned) ' .
+	 'values (' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""),"' . $banned_user . '")';
 
 mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
 
@@ -381,6 +401,10 @@ $fp_lite = fopen($locations['datfile_lite'],'w') or error('Unable to open ' . $l
 // create the forum_json file
 $fp_json = fopen($locations['jsonfile'],'w') or error('Unable to open ' . $locations['jsonfile'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['jsonfile'] . ' for writing');
 
+$fp_banned = fopen($locations['datfile_banned'], 'w') or error('Unable to open ' . $locations['datfile_banned'] . ' for writing', $config['admin_email'], 'Unable to open ' . $locations['datfile_banned'] . ' for writing');
+
+$fp_lite_banned = fopen($locations['datfile_lite_banned'],'w') or error('Unable to open ' . $locations['datfile_lite_banned'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['datfile_lite_banned'] . ' for writing');
+
 // re-setup the table rotation scheme
 if ($config['rotate_tables'] == 'daily')
   $t = date('mdy');
@@ -399,7 +423,7 @@ $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $loc
 // query for the rows to output
 $query = 'select ' . $tablename . '.id, ' . $tablename . '.parent, ' . $tablename . '.thread, ' . $tablename . '.message_author, ' . $tablename . '.message_subject, ' .
 	 'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, date_format(' . $tablename . '.date, "%l:%i:%s %p") as date_sm, "' . $t . '" as t, ' .
-	 $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	 $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' . $tablename . '.banned, ' .
 	 'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' . $tablename . '.message_body ' .
 	 'from ' . $tablename . ' ' .
 	 'where unix_timestamp(' . $tablename . '.date) > (unix_timestamp(now()) - ' . $config['displaytime'] . ') ' .
@@ -429,7 +453,7 @@ if (($config['rotate_tables'] == 'daily' && date('mdy',time() - $config['display
   $query = '(' . $query . ') union (' .
 	   'select ' . $tablename . '.id,' . $tablename . '.parent,' . $tablename . '.thread,' . $tablename . '.message_author,' . $tablename . '.message_subject, ' .
 	   'date_format(' . $tablename . '.date,"%m/%d/%Y - %l:%i:%s %p") as date, date_format(' . $tablename . '.date, "%l:%i:%s %p") as date_sm, "' . $t . '" as t, ' .
-	   $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' .
+	   $tablename . '.link, ' . $tablename . '.image, ' . $tablename . '.video, ifnull(' . $tablename . '.score, "null") as score, ifnull(' . $tablename . '.type, "null") as type, ' . $tablename . '.banned, ' .
 	   'case when ' . $tablename . '.message_body = "" then "n" else "y" end as body, ' . $tablename . '.message_body ' .
 	   'from ' . $tablename . ' ' .
 	   'where unix_timestamp(' . $tablename . '.date) > (unix_timestamp(now()) - ' . $config['displaytime'] . ') ' .
@@ -479,10 +503,14 @@ while ($posts = mysqli_fetch_array($results)) {
 
   // find difference between these arrays, returns an array
   if ($threads <= $config['maxthreads']) {
-    fputs($fp,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread'])))));
+    $thread_count = count(array_diff($lastthread,explode('.',$posts['thread'])));
+    fputs($fp,str_repeat("</li></ul>",$thread_count));
+    fputs($fp_banned,str_repeat("</li></ul>",$thread_count));
   }
-  if ($threads <= $config['maxthreadslite'])
+  if ($threads <= $config['maxthreadslite']) {
     fputs($fp_lite,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread'])))));
+    fputs($fp_lite_banned,str_repeat("</li></ul>",count(array_diff($lastthread,explode('.',$posts['thread'])))));
+  }
 
   $lastthread = explode('.',$posts['thread']);
 
@@ -528,11 +556,28 @@ while ($posts = mysqli_fetch_array($results)) {
 
   if ($threads <= $config['maxthreads']) {
 
-    fputs($fp,
-	  '<ul><li><a href="' . $locations['forum'] . '?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
+    if ($posts['banned'] == 'y')
+    {
+      fputs($fp, '<ul style="display: none"><li>');
+      fputs($fp_banned,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
 	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
 	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
 	  );
+    }
+    else
+    {
+      fputs($fp,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
+	  );
+      fputs($fp_banned,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '" title="' . $posts['date'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
+	  );
+    }
 
     $thispost = array(
 	't' => $posts['t'],
@@ -574,11 +619,28 @@ while ($posts = mysqli_fetch_array($results)) {
   }
 
   if ($threads <= $config['maxthreadslite']) {
-    fputs($fp_lite,
-	  '<ul><li><a href="' . $locations['forum'] . '?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '">' . $posts['message_subject'] . '</a> ' .
+    if ($posts['banned'] == 'y')
+    {
+      fputs($fp_lite, '<ul style="display: none"><li>');
+      fputs($fp_lite_banned,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '">' . $posts['message_subject'] . '</a> ' .
 	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
 	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
 	  );
+    }
+    else
+    {
+      fputs($fp_lite,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
+	  );
+      fputs($fp_lite_banned,
+	  '<ul><li><a href="?d=' . $posts['id'] . '&amp;t=' . $posts['t'] . '">' . $posts['message_subject'] . '</a> ' .
+	  options($posts['link'],$posts['video'],$posts['image'],$posts['body'],$posts['message_author']) .
+	  ' - <b>' . $posts['message_author'] . '</b>' . $display_date . $display_rate
+	  );
+    }
   }
 }
 
@@ -586,18 +648,25 @@ fputs($fp_json, json_encode($json));
 
 if (is_array($lastnormalthread)) {
   fputs($fp,str_repeat('</li></ul>',count($lastnormalthread)));
+  fputs($fp_banned,str_repeat('</li></ul>',count($lastnormalthread)));
 } else {
   fputs($fp,str_repeat('</li></ul>',count($lastthread)));
+  fputs($fp_banned,str_repeat('</li></ul>',count($lastthread)));
 }
 
-if (is_array($lastlitethread))
+if (is_array($lastlitethread)) {
   fputs($fp_lite,str_repeat('</li></ul>',count($lastlitethread)));
-else
+  fputs($fp_lite_banned,str_repeat('</li></ul>',count($lastlitethread)));
+} else {
   fputs($fp_lite,str_repeat('</li></ul>',count($lastthread)));
+  fputs($fp_lite_banned,str_repeat('</li></ul>',count($lastthread)));
+}
 
 // close the forum file
 fclose($fp);
+fclose($fp_banned);
 fclose($fp_lite);
+fclose($fp_lite_banned);
 fclose($fp_json);
 
 // remove the lock
@@ -737,10 +806,11 @@ function parse_embed($text) {
 
 // this function handles banning of users
 function ban() {
-  global $locations, $config;
-  setcookie('chocolate',time(),time() * (60*60*24*365),'/');
-  header('Location: ' . $locations['forum']);
-  exit();
+  global $locations, $config, $banned_user;
+  setcookie('chocolate',time(),time() + (60*60*24*365),'/');
+  //header('Location: ' . $locations['forum']);
+  //exit();
+  $banned_user = 'y';
 }
 
 ?>

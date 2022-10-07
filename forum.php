@@ -736,7 +736,10 @@ $data .= str_repeat('</li></ul>',count($lastthread));
   }
 
   // grab the shortened datfile
-  include($locations['datfile_lite']);
+  if (isset($_COOKIE['chocolate']))
+    readfile($locations['datfile_lite_banned']);
+  else
+    readfile($locations['datfile_lite']);
   display_form();
 
 } else {
@@ -753,7 +756,10 @@ $data .= str_repeat('</li></ul>',count($lastthread));
     }
   }
 
-  readfile($locations['datfile']);
+  if (isset($_COOKIE['chocolate']))
+    readfile($locations['datfile_banned']);
+  else
+    readfile($locations['datfile']);
 
   display_form();
 
