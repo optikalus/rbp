@@ -146,6 +146,33 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
     document.getElementById('hidden_images_text').innerHTML = hidden_images_text;
   }
 
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelector('input[name="message_subject"]').addEventListener('keyup', function (e) {
+      if (e.target.value.length > 57) {
+        switchSubjectToTextarea();
+      }
+    });
+  });
+
+  function switchSubjectToTextarea() {
+    var input = document.querySelector('input[name="message_subject"]');
+    var inputValue = input.value;
+    var textarea = document.createElement('textarea');
+
+    input.getAttributeNames().forEach(attrName => {
+      textarea.setAttribute(attrName, (document.createAttribute(attrName).value = input.getAttribute(attrName)));
+    });
+
+    textarea.setAttribute('rows', '4');
+    textarea.setAttribute('cols', '45');
+    textarea.innerText = inputValue;
+    input.replaceWith(textarea);
+
+    var newTextarea = document.querySelector('textarea[name="message_subject"]');
+    newTextarea.focus();
+    newTextarea.selectionStart = newTextarea.selectionEnd = newTextarea.value.length;
+  }
+  
   //-->
   </script>
 
