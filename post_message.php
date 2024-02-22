@@ -27,6 +27,8 @@ $banned_user = 'n';
 // check banned list
 if (isset($banned) && is_array($banned)) {
 
+  if (isset($_COOKIE['chocolate'])) ban();
+
   if (isset($banned['usernames']) && isset($banned['usernames'][strtolower($_POST['message_author'])])) ban();
 
   //if (in_array($_SERVER['HTTP_USER_AGENT'], $banned['agents'])) ban();
@@ -42,6 +44,7 @@ if (isset($banned) && is_array($banned)) {
       if (strpos($remote_addr, $ip) === 0 && strtolower($_POST['message_author']) != 'epicutioner') ban();
     }
   }
+
 }
 
 // check for proxy posting
@@ -260,11 +263,50 @@ if ($_POST['warning'] == 'bot') {
   exit;
 }
 
-// insert the post
-$query = 'insert into ' . $tablename . ' (' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id,banned) ' .
-	 'values (' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""),"' . $banned_user . '")';
+// check to see if new username attempting to post something with a flag
+if (!isset($_COOKIE['cookie_name']) && isset($_POST['warning']) && $_POST['warning'] != '' && ($_POST['warning'] == 'warn-g' || $_POST['warning'] == 'warn-n' || $_POST['warning'] == 'nsfw')) {
+  $query = 'select distinct message_author from ' . $tablename . ' where message_author = "' . escape(alter_username($message_author)) . '" and banned = "n"';
+  $result = mysqli_query($mysqli_link, $query);
+  if (mysqli_num_rows($result) === 0) {
+    ban();
+    sleep(1);
+    header('Location: ' . $locations['forum']);
+    exit;
+  }
+}
 
-mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+$debug = false;
+
+/*
+if ($_SERVER['REMOTE_ADDR'] == '1.2.3.4')
+  $debug = true;
+ */
+
+$debug_strings = array();
+
+// manual auto incrementation
+$query = 'select case when max(id) is null then 1 else max(id) + 1 end as id from ' . $tablename . ' where t = "' . $t . '"';
+$result = mysqli_query($mysqli_link, $query);
+
+// authorized
+if (mysqli_num_rows($result) === 1) {
+  $res_id = mysqli_fetch_array($result);
+  $id = $res_id['id'];
+} else {
+  $id = 1;
+}
+
+// insert the post
+$query = 'insert into ' . $tablename . ' (id,' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id,banned) ' .
+	 'values (' . $id . ',' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""),"' . $banned_user . '")';
+
+array_push($debug_strings, $query);
+
+$msc = microtime(true);
+mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error($mysqli_link));
+$msc = microtime(true) - $msc;
+
+array_push($debug_strings, " took " . ($msc * 1000) . " ms<br />");
 
 $insert_id = mysqli_insert_id($mysqli_link);
 
@@ -334,7 +376,13 @@ $query = 'update ' . $tablename . ' set ' .
 	 'link = "' . $link . '", video = "' . $video . '", image = "' . $image . '" ' .
 	 'where id = ' . $insert_id . (!$config['rotate_tables'] ? ' and t = ' . $t : '');
 
+array_push($debug_strings, $query);
+
+$msc = microtime(true);
 mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+$msc = microtime(true) - $msc;
+
+array_push($debug_strings, " took " . ($msc * 1000) . " ms<br />");
 
 // account for warning preset
 if (isset($_POST['warning']) && $_POST['warning'] != '' && ($_POST['warning'] == 'warn-g' || $_POST['warning'] == 'warn-n' || $_POST['warning'] == 'nsfw')) {
@@ -399,7 +447,7 @@ $fp = fopen($locations['datfile'],'w') or error('Unable to open ' . $locations['
 $fp_lite = fopen($locations['datfile_lite'],'w') or error('Unable to open ' . $locations['datfile_lite'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['datfile_lite'] . ' for writing');
 
 // create the forum_json file
-$fp_json = fopen($locations['jsonfile'],'w') or error('Unable to open ' . $locations['jsonfile'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['jsonfile'] . ' for writing');
+//$fp_json = fopen($locations['jsonfile'],'w') or error('Unable to open ' . $locations['jsonfile'] . ' for writing',$config['admin_email'],'Unable to open ' . $locations['jsonfile'] . ' for writing');
 
 $fp_banned = fopen($locations['datfile_banned'], 'w') or error('Unable to open ' . $locations['datfile_banned'] . ' for writing', $config['admin_email'], 'Unable to open ' . $locations['datfile_banned'] . ' for writing');
 
@@ -462,7 +510,13 @@ if (($config['rotate_tables'] == 'daily' && date('mdy',time() - $config['display
 	   ') order by t desc, parent desc, thread asc limit ' . $config['maxrows'];
 }
 
+array_push($debug_strings, $query);
+
+$msc = microtime(true);
 $results = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+$msc = microtime(true) - $msc;
+
+array_push($debug_strings, " took " . ($msc * 1000) . " ms<br />");
 
 if (mysqli_num_rows($results) == 0)
   error('',$config['admin_email'],'ERROR: No rows to output');
@@ -474,7 +528,7 @@ $lastlitethread = null;
 // preset thread count
 $threads = 0;
 
-$json = array();
+//$json = array();
 
 $sizes = array();
 $sizes[0] = 'xx-small';
@@ -485,6 +539,7 @@ $sizes[4] = 'large';
 $sizes[5] = 'x-large';
 $sizes[6] = 'xx-large';
 
+$msc = microtime(true);
 while ($posts = mysqli_fetch_array($results)) {
 
   // test to see if current row is a new thread, increment $threads if so
@@ -594,7 +649,7 @@ while ($posts = mysqli_fetch_array($results)) {
 	'message_body' => $posts['message_body'],
     );
 
-    if ($posts['link'] == 'y') {
+/*    if ($posts['link'] == 'y') {
       $query = 'select link_url, link_title from ' . $locations['links_table'] . ' where t = "' . $posts['t'] . '" and id = "' . $posts['id'] . '"';
       $jsonlinkresult = mysqli_query($mysqli_link, $query);
       $thislinks = array();
@@ -615,7 +670,7 @@ while ($posts = mysqli_fetch_array($results)) {
     }
 
     array_push($json, $thispost);
-
+*/
   }
 
   if ($threads <= $config['maxthreadslite']) {
@@ -644,7 +699,7 @@ while ($posts = mysqli_fetch_array($results)) {
   }
 }
 
-fputs($fp_json, json_encode($json));
+//fputs($fp_json, json_encode($json));
 
 if (is_array($lastnormalthread)) {
   fputs($fp,str_repeat('</li></ul>',count($lastnormalthread)));
@@ -667,10 +722,17 @@ fclose($fp);
 fclose($fp_banned);
 fclose($fp_lite);
 fclose($fp_lite_banned);
-fclose($fp_json);
+//fclose($fp_json);
 
 // remove the lock
 unlink($locations['datfile'] . '.lock');
+
+$msc = microtime(true) - $msc;
+array_push($debug_strings, "dat file processing took " . ($msc * 1000) . " ms<br />");
+if ($debug === true) {
+  print_r($debug_strings);
+  exit();
+}
 
 // we're done!
 if (!isset($_POST['beta'])) {
