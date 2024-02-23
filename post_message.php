@@ -278,7 +278,7 @@ if (!isset($_COOKIE['cookie_name']) && isset($_POST['warning']) && $_POST['warni
 $debug = false;
 
 /*
-if ($_SERVER['REMOTE_ADDR'] == '1.2.3.4')
+if ($_SERVER['REMOTE_ADDR'] == '10.1.0.216')
   $debug = true;
  */
 
@@ -296,9 +296,14 @@ if (mysqli_num_rows($result) === 1) {
   $id = 1;
 }
 
+// handle transient
+$transient = 'n';
+if (isset($_POST['transient']))
+  $transient = 'y';
+
 // insert the post
-$query = 'insert into ' . $tablename . ' (id,' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id,banned) ' .
-	 'values (' . $id . ',' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""),"' . $banned_user . '")';
+$query = 'insert into ' . $tablename . ' (id,' . (!$config['rotate_tables'] ? 't,' : '') . 'message_author,message_author_email,message_subject,message_body,date,ip,user_id,banned,transient) ' .
+	 'values (' . $id . ',' . (!$config['rotate_tables'] ? $t . ',' : '') . '"' . escape(alter_username($message_author)) . '","' . escape($message_author_email) . '","' . escape($message_subject) . '","' . escape($message_body) . '",now(),"' . $remote_addr . '",nullif("' . $user_id . '",""),"' . $banned_user . '","' . $transient . '")';
 
 array_push($debug_strings, $query);
 
@@ -726,6 +731,16 @@ fclose($fp_lite_banned);
 
 // remove the lock
 unlink($locations['datfile'] . '.lock');
+
+// transient cleanup
+$query = 'select id from ' . $tablename . ' where t = "' . $t . '" and transient = "y" and id = parent and date <= date_sub(now(), interval ' . $config['displaytime'] . ' second)';
+array_push($debug_strings, $query);
+$result = mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
+while ($parent = mysqli_fetch_array($result)) {
+  $query = 'delete from ' . $tablename . ' where t = "' . $t . '" and parent = "' . $parent['id'] . '"';
+  array_push($debug_strings, $query);
+  mysqli_query($mysqli_link, $query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error($mysqli_link));
+}
 
 $msc = microtime(true) - $msc;
 array_push($debug_strings, "dat file processing took " . ($msc * 1000) . " ms<br />");

@@ -990,6 +990,14 @@ function display_form($parent=null,$t=null,$thread=null) {
     <td><select name='warning' style='font-size: smaller'><option value=''>None</option><option value='warn-g'>Warning - Gross</option><option value='warn-n'>Warning - Nudity</option><option value="nsfw">NSFW</option></select></td>
   </tr>
 <?
+  if (!isset($parent) && !isset($thread)) {
+?>
+  <tr>
+    <td align='right' valign='top'>Transient?</td>
+    <td><input type='checkbox' name='transient' class='forminput' /> (Thread is removed and not stored once it falls off the board)</td>
+  </tr>
+<?
+  }
   if (!isset($_COOKIE['cookie_name']) && $config['require_captcha'] === true) {
 ?>
   <tr>

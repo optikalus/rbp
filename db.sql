@@ -16,16 +16,15 @@ CREATE TABLE `posts` (
   `banned` enum('n','y') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'n',
   `score` decimal(3,2) DEFAULT NULL,
   `type` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `transient` enum('n','y') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'n',
   PRIMARY KEY (`id`,`t`),
   KEY `message_author` (`message_author`),
   KEY `date` (`date`),
   KEY `keyword` (`message_author`,`message_subject`,`message_body`(255)),
   KEY `parent` (`parent`,`t`),
   KEY `t_date` (`t`,`date`),
-  KEY `author_date` (`message_author`,`date`),
-  FULLTEXT KEY `message_author_2` (`message_author`),
-  FULLTEXT KEY `message_subject` (`message_subject`)
-) ENGINE=InnoDB AUTO_INCREMENT=10446 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `author_date` (`message_author`,`date`)
+) ENGINE=InnoDB AUTO_INCREMENT=10446 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 CREATE TABLE `links` (
   `id` int NOT NULL DEFAULT '0',
