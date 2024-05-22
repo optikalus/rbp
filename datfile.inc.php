@@ -1,7 +1,7 @@
 <?php
 
 function write_dat_file() {
-    global $locations, $config, $insert_id, $message_author, $message_subject, $debug_strings, $mysqli_link;
+    global $locations, $config, $insert_id, $message_author, $message_subject, $debug_strings, $mysqli_link, $t;
 
 // Check for existing $datfile.lock
     if (file_exists($locations['datfile'] . '.lock')) {
