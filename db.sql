@@ -24,7 +24,7 @@ CREATE TABLE `posts` (
   KEY `parent` (`parent`,`t`),
   KEY `t_date` (`t`,`date`),
   KEY `author_date` (`message_author`,`date`)
-) ENGINE=InnoDB AUTO_INCREMENT=10446 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=10446 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `links` (
   `id` int NOT NULL DEFAULT '0',

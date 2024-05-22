@@ -213,7 +213,13 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
     if (strlen($post['message_author_email']) > 0)
       print " &lt;<a href='mailto:" . $post['message_author_email'] . "'>" . $post['message_author_email'] . "</a>&gt;";
 
-    print " on " . $post['date'] . "<br />\n";
+    print " on " . $post['date'];
+
+    if (can_edit($post['id'], $_GET['t'])) {
+        print " <a href='edit.php?d=" . $post['id'] . "&t=" . $_GET['t'] . "'><b>[Edit]</b></a>";
+    }
+
+    print "<br />\n";
 
     // add authentication tag
     $query = "select '1' from " . $locations['auth_posts_table'] . " where id = '" . $_GET['d'] . "' and t = '" . $_GET['t'] . "'";

@@ -35,6 +35,7 @@ $locations['login'] = '/login.php';
 $locations['logout'] = '/logout.php';
 $locations['session_path'] = '../sessions';
 $locations['admin'] = '/admin.php';
+$locations['edit'] = '/edit_message.php';
 
 // name of the forum threads
 $locations['datfile'] = 'forum.dat';
@@ -89,6 +90,11 @@ $config['fb-client-access-token'] = 'Authorization: Bearer AppID|ClientToken';
 
 // proxy users
 $config['proxy_users'] = array();
+
+// editing
+$config['edit_mode_enabled'] = true;
+$config['edit_time_limit'] = 60*5; # seconds allowed to edit post for
+$config['edit_secure_value'] = 'set random phrase here';
 
 // image uploading configuration
 $config['image_max_filesize'] = 500000;
@@ -197,4 +203,9 @@ function error_redirect($errors) {
 
 }
 
+function can_edit($id, $t) {
+  global $config;
+
+  return sha1($id . '_' . $t . '_' . $config['edit_secure_value'] . $_SERVER['HTTP_USER_AGENT']) === $_COOKIE['cookie_edit'];
+}
 ?>
