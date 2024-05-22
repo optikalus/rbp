@@ -215,7 +215,7 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
 
     print " on " . $post['date'];
 
-    if (can_edit($post['id'], $_GET['t'])) {
+    if (isset($_GET['t']) && can_edit($post['id'], $_GET['t'])) {
         print " <a href='edit.php?d=" . $post['id'] . "&t=" . $_GET['t'] . "'><b>[Edit]</b></a>";
     }
 
