@@ -95,11 +95,11 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 } 
 
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">        
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="content-type" content="text/html;charset=utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=.5, shrink-to-fit=no">
   <title><?=$config['title']?></title>
 
   <script language="Javascript" type="text/javascript">
@@ -213,7 +213,13 @@ if (isset($_GET['d']) && is_numeric($_GET['d']) && isset($_GET['t']) && is_numer
     if (strlen($post['message_author_email']) > 0)
       print " &lt;<a href='mailto:" . $post['message_author_email'] . "'>" . $post['message_author_email'] . "</a>&gt;";
 
-    print " on " . $post['date'] . "<br />\n";
+    print " on " . $post['date'];
+
+    if (isset($_GET['t']) && can_edit($post['id'], $_GET['t'])) {
+        print " <a href='edit.php?d=" . $post['id'] . "&t=" . $_GET['t'] . "'><b>[Edit]</b></a>";
+    }
+
+    print "<br />\n";
 
     // add authentication tag
     $query = "select '1' from " . $locations['auth_posts_table'] . " where id = '" . $_GET['d'] . "' and t = '" . $_GET['t'] . "'";
@@ -380,7 +386,7 @@ Type:
 	      print '<iframe id="ytplayer" type="text/html" width="640" height="390" src="https://www.youtube.com/embed/'.escape($youtube_video_id[1]).'?autoplay=0" frameborder="0" allowfullscreen></iframe><br />';
 	    } elseif (preg_match('/vimeo\.com\/(\d+)/', $link['link_url'], $vimeo_video_id)) {
 	      echo '<iframe src="//player.vimeo.com/video/' , $vimeo_video_id[1] , '?color=f1732f" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />';
-      } elseif (preg_match('/^(https?:\/\/(mobile.)?twitter\.com\/[?:#!\/]?\w+\/status[es]?\/\d+).*$/', $link['link_url'], $twitter_url)) {
+      } elseif (preg_match('/^(https?:\/\/(mobile.)?(x\.com|twitter\.com)\/[?:#!\/]?\w+\/status[es]?\/\d+).*$/', $link['link_url'], $twitter_url)) {
         $apiurl = 'https://publish.twitter.com/oembed?url=';
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -736,7 +742,10 @@ $data .= str_repeat('</li></ul>',count($lastthread));
   }
 
   // grab the shortened datfile
-  include($locations['datfile_lite']);
+  if (isset($_COOKIE['chocolate']) || !isset($_COOKIE['cookie_name']))
+    readfile($locations['datfile_lite_banned']);
+  else
+    readfile($locations['datfile_lite']);
   display_form();
 
 } else {
@@ -753,7 +762,10 @@ $data .= str_repeat('</li></ul>',count($lastthread));
     }
   }
 
-  readfile($locations['datfile']);
+  if (isset($_COOKIE['chocolate']) || !isset($_COOKIE['cookie_name']))
+    readfile($locations['datfile_banned']);
+  else
+    readfile($locations['datfile']);
 
   display_form();
 
@@ -984,6 +996,14 @@ function display_form($parent=null,$t=null,$thread=null) {
     <td><select name='warning' style='font-size: smaller'><option value=''>None</option><option value='warn-g'>Warning - Gross</option><option value='warn-n'>Warning - Nudity</option><option value="nsfw">NSFW</option></select></td>
   </tr>
 <?
+  if (!isset($parent) && !isset($thread)) {
+?>
+  <tr>
+    <td align='right' valign='top'>Transient?</td>
+    <td><input type='checkbox' name='transient' class='forminput' /> (Thread is removed and not stored once it falls off the board)</td>
+  </tr>
+<?
+  }
   if (!isset($_COOKIE['cookie_name']) && $config['require_captcha'] === true) {
 ?>
   <tr>

@@ -167,6 +167,8 @@ $where = null;
 if (isset($_REQUEST['keyword']) || isset($_REQUEST['finduser']) ||
    (isset($_REQUEST['message_author']) && isset($_REQUEST['message_body']) && isset($_REQUEST['message_subject']))) {
 
+  mysqli_query($mysqli_link, "set profiling = 1;");
+
   if (isset($_REQUEST['keyword']))
     $where = '(message_author like "%' . escape($_REQUEST['keyword']) . '%" or message_subject like "%' . escape($_REQUEST['keyword']) . '%" or message_body like "%' . escape($_REQUEST['keyword']) . '%")';
   elseif (isset($_REQUEST['finduser']))
@@ -250,29 +252,19 @@ if (isset($_REQUEST['keyword']) || isset($_REQUEST['finduser']) ||
 
     $tablename = ($config['rotate_tables'] ? $locations['posts_table'].'_'.$t : $locations['posts_table']);
 
-    // if the table exists...
-    if (mysqli_query($mysqli_link,'select count(id) from ' . $tablename) && $where != '') {
+    $query .= '(select id,parent,message_author,message_subject,date_format(date,"%m/%d/%Y - %l:%i:%s %p") as date, date as date2, ' . (!$config['rotate_tables'] ? 't' : '"' . $t . '"') . ' as t ' .
+	      'from ' . $tablename . ' where (' . $where . ') ' .
+	      ($daterange != 999999 ? 'and date >= date_sub(curdate(), interval ' . $daterange . ' day) ' : '') .
+	      'and message_author not in ("wot","burtle","adamgeek","myc187","thepeekay","pkx","fj","the doug","ratbert","bdev","loki","ratvespa") ' .
+	      'and message_body not like "%adamgeek%" and message_body not like "%burtle%" order by date2 desc)';
 
-      if ($i != 0)
-	$query .= ' union ';
-
-      $query .= '(select id,parent,message_author,message_subject,date_format(date,"%m/%d/%Y - %l:%i:%s %p") as date, date as date2, ' . (!$config['rotate_tables'] ? 't' : '"' . $t . '"') . ' as t ' .
-		'from ' . $tablename . ' where (' . $where . ') ' .
-		($daterange != 999999 ? 'and date >= date_sub(curdate(), interval ' . $daterange . ' day) ' : '') .
-		'and message_author not in ("wot","burtle","adamgeek","myc187","thepeekay","pkx","fj","the doug","ratbert","bdev","loki") ' .
-		'and message_body not like "%adamgeek%" and message_body not like "%burtle%" order by date2 desc)';
-
-    }
   }
 
   if ($query != null) {
 
-    $query .= ' order by date2 desc';
-
     $result = mysqli_query($mysqli_link,$query) or error($config['db_errstr'],$config['admin_email'],$query."\n".mysqli_error());
-
-    print "Your search returned <b>".mysqli_num_rows($result)."</b> record(s).<br /><br />\n";
-
+    $exec_time_result = mysqli_query($mysqli_link,'SELECT query_id, SUM(duration) FROM information_schema.profiling GROUP BY query_id ORDER BY query_id DESC LIMIT 1;');
+    print "Your search returned <b>".mysqli_num_rows($result)."</b> record(s) in " . mysqli_fetch_array($exec_time_result)[1] . " seconds.<br /><br />\n";
     print "<ul>\n";
 
     if (mysqli_num_rows($result) > 0) {
