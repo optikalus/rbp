@@ -120,3 +120,158 @@ html>body .titlelarge {
 .captcha {
   display: none;
 }
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+
+
+
+
+/* iPhone Portrait */
+@media screen and (max-device-width: 480px) and (orientation:portrait) {
+
+	#boardheader {
+		display: none;
+	}
+
+
+	body,
+	.main td {
+		font-size: x-large;
+		line-height: 135%;
+		width: auto;
+	}
+
+	table.main > tbody > tr > td > table.main > tbody > tr > td:first-child {
+		width: 200px;
+		text-align: left;
+	}
+
+	.forminput,
+	.formsubmit {
+		font-size: x-large;
+	}
+
+	ul li {
+	    margin-top: 5px;
+   }
+}
+
+/* iPhone Landscape */
+@media screen and (max-device-width: 480px) and (orientation:landscape) {
+	#boardheader {
+		display: none;
+	}
+
+	body,
+	.main td {
+		font-size: x-large;
+		line-height: 135%;
+		width: auto;
+	}
+
+	table.main > tbody > tr > td > table.main > tbody > tr > td:first-child {
+		width: 240px;
+		text-align: left;
+	}
+
+	.forminput,
+	.formsubmit {
+		font-size: x-large;
+	}
+
+	ul li {
+	    margin-top: 5px;
+   }
+}
+
+/* iPad Portrait */
+@media screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:portrait) {
+
+	#boardheader {
+		display: none;
+	}
+
+	body,
+	.main td {
+		font-size: x-large;
+		line-height: 135%;
+		width: auto;
+	}
+
+	table.main > tbody > tr > td > table.main > tbody > tr > td:first-child {
+		width: 400px;
+		text-align: left;
+	}
+
+	.forminput,
+	.formsubmit {
+		font-size: x-large;
+	}
+
+	ul li {
+	    margin-top: 5px;
+   }
+}
+
+/* iPad Landscape */
+@media screen and (min-device-width: 481px) and (max-device-width: 1024px) and (orientation:landscape) {
+/*
+	ul li {
+	    margin-top: 5px;
+		font-size: xx-large;
+		line-height: 135%;
+   }
+*/
+}
+
+
+
+@media (prefers-color-scheme: dark) {
+	img {
+		opacity: .75;
+		transition: opacity .5s ease-in-out;
+	}
+
+	img:hover {
+		opacity: 1;
+	}
+
+	body,
+	.main,
+	.main td,
+	.main input,
+	table.main,
+	.main textarea {
+		background-color: black;
+		color: #bababa;
+	}
+
+	a:link {
+		color: #b34802;
+	}
+
+	a:active {
+		color: #FF0000;
+	}
+
+	a:visited {
+		color: #a15102;
+	}
+	
+	.newstext {
+        color: #bababa;
+        font-size: xx-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-small;
+	}
+
+	.title, .titlelarge {
+		color: #bababa;
+		background-color: #b34802;
+	}
+}
