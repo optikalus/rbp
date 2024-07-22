@@ -240,6 +240,11 @@ img {
 		opacity: 1;
 	}
 
+	body{
+		background: url(/messageboard/riceback_n.gif) repeat fixed;
+	}
+	
+	
 	body,
 	.main,
 	.main td,
