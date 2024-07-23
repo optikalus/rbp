@@ -3,6 +3,7 @@
     --active: #FF0000;
 	--visited: #CC6600;
     --text: Black;
+	--title-text: White;
     --bg: #fff;
     --titlebg: #ff9933;
 	--bgimage: url(/messageboard/riceback.gif);
@@ -12,6 +13,7 @@
     --active: #FF0000;
 	--visited: #a15102;
     --text: #bababa;
+	--title-text: #bababa;
     --bg: black;
     --titlebg: #b34802;
 	--bgimage: url(/messageboard/riceback_n.gif);
@@ -55,7 +57,7 @@ html>body .main {
 
 .title {
 	font-weight: bold;
-	color: var(--text);
+	color: var(--title-text);
 	background-color: var(--titlebg);
 	font-size: xx-small;
 	voice-family: "\"}\"";
@@ -80,8 +82,8 @@ html>body .newsdate {
 }
 
 .newstext {
-        color: var(--text));
-        font-size: xx-small;
+		color: var(--text));
+		font-size: xx-small;
 	voice-family: "\"}\"";
 	voice-family: inherit;
 	font-size: x-small;
@@ -92,14 +94,14 @@ html>body .newstext {
 }
 
 .titlelarge {
-        color: var(--text);
+    color: var(--title-text);
 	line-height: 135%;
 	background-color: var(--titlebg);
-        font-size: large;
+    font-size: large;
 	voice-family: "\"}\"";
 	voice-family: inherit;
 	font-size: x-large;
-        font-weight: bold;
+    font-weight: bold;
 }
 
 html>body .titlelarge {
