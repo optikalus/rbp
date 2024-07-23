@@ -148,7 +148,7 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 
   //-->
   </script>
-  <!-- This will do the dark mode shit -->
+  <!-- This will do dark mode -->
     <script language="Javascript" type="text/javascript">
   
   window.onload=function(){
