@@ -148,6 +148,47 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 
   //-->
   </script>
+  <!-- This will do the dark mode shit -->
+    <script language="Javascript" type="text/javascript">
+  
+  window.onload=function(){
+
+
+  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+
+	function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }    
+}
+
+toggleSwitch.addEventListener('change', switchTheme, false);
+  
+  function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark'); //add this
+    }
+    else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light'); //add this
+    }    
+}
+
+const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    if (currentTheme === 'dark') {
+        toggleSwitch.checked = true;
+    }
+}
+}
+  </script>
 
   <link rel="stylesheet" type="text/css" href="<?=$locations['css']?>" />
 
@@ -807,7 +848,16 @@ function display_header() {
     <td class='borderoutline'>
 <table width='100%' border='0' cellpadding='4' cellspacing='1'>
   <tr class='title'>
-    <td colspan='2'><?=$config['title']?></td>
+    <td colspan='1'><h2><?=$config['title']?></h2></td>
+	<td>
+	<div class="theme-switch-wrapper">
+    <label class="theme-switch" for="checkbox">
+        <input type="checkbox" id="checkbox" />
+        <div class="slider round"></div>
+	</label>
+	<em>Enable Dark Mode!</em>
+	</div>
+	</td>
   </tr>
   <tr class='main'>
     <td class='menu'>
