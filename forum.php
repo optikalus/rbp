@@ -156,6 +156,8 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 
   const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
 
+  if(toggleSwitch != null)
+  {
 	function switchTheme(e) {
     if (e.target.checked) {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -176,7 +178,8 @@ toggleSwitch.addEventListener('change', switchTheme, false);
         document.documentElement.setAttribute('data-theme', 'light');
         localStorage.setItem('theme', 'light'); //add this
     }    
-}
+	}
+  }
 
 const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
 
