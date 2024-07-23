@@ -5,6 +5,7 @@
     --text: Black;
     --bg: #fff;
     --titlebg: #ff9933;
+	--bgimage: url(/messageboard/riceback.gif);
 }
 [data-theme="dark"] {
     --link: #b34802;
@@ -13,13 +14,14 @@
     --text: #bababa;
     --bg: black;
     --titlebg: #b34802;
+	--bgimage: url(/messageboard/riceback_n.gif);
 }
 
 body {
 	font-family: Verdana, Helvetica, sans-serif;
 	color: var(--text);
 	line-height: 135%;
-	background: url(/messageboard/riceback.gif) repeat fixed;
+	background: var(--bgimage) repeat fixed;
 	/*background: url(http://www.f0e.net/images/tiling.gif) repeat fixed;*/
 	background-color: var(--bg);
 	font-size: x-small;	/* false value for WinIE4/5 */
