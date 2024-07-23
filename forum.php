@@ -207,53 +207,6 @@ toggleSwitch.addEventListener('change', switchTheme, false);
   //-->
   </script>
 
-  <script language="Javascript" type="text/javascript">
-  <!--
-  function isFilled(f){
-    var L_Msg_Text='Please enter a Name and Subject.';
-    if (f.message_author.value == '' || f.message_subject.value == '') {
-      alert(L_Msg_Text);
-      return false;
-    } else {
-      disableForm(f);
-      return true;
-    }
-  }
-
-  function disableForm(theform) {
-    if (document.all || document.getElementById) {
-      for (i = 0; i < theform.length; i++) {
-	var tempobj = theform.elements[i];
-	if (tempobj.type.toLowerCase() == "submit" || tempobj.type.toLowerCase() == "reset")
-	  tempobj.disabled = true;
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  function hidden_links(num) {
-    var hidden_links_text = "<table class='main'>";
-    for (i = 1; i < num.value; i++) {
-      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
-    }
-    hidden_links_text = hidden_links_text + "</table>\n";
-    document.getElementById('hidden_links_text').innerHTML = hidden_links_text;
-  }
-
-  function hidden_images(num) {
-    var hidden_images_text = "<table class='main'>";
-    for (i = 1; i < num.value; i++) {
-      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
-    }
-    hidden_images_text = hidden_images_text + "</table>\n";
-    document.getElementById('hidden_images_text').innerHTML = hidden_images_text;
-  }
-
-  //-->
-  </script>
-
   <link rel="stylesheet" type="text/css" href="<?=$locations['css']?>" />
 
 </head>
