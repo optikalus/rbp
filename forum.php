@@ -101,7 +101,65 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=.5, shrink-to-fit=no">
   <title><?=$config['title']?></title>
+  
+  <!--Fixing flashing shit -->
+<script language="Javascript" type="text/javascript">
+const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
 
+if (currentTheme) {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    if (currentTheme === 'dark') {
+        toggleSwitch.checked = true;
+    }
+}
+</script>
+<!--Dark mode -->
+<script language="Javascript" type="text/javascript">
+
+window.onload=function(){
+const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+
+	const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+	if (currentTheme) {
+		document.documentElement.setAttribute('data-theme', currentTheme);
+
+		if (currentTheme === 'dark') {
+			toggleSwitch.checked = true;
+		}
+	}
+  
+	
+  if(toggleSwitch != null)
+  {
+	function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    else {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }    
+}
+
+toggleSwitch.addEventListener('change', switchTheme, false);
+  
+  function switchTheme(e) {
+    if (e.target.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark'); //add this
+    }
+    else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light'); //add this
+    }    
+}
+}
+}
+
+
+  </script>
+  
   <script language="Javascript" type="text/javascript">
   <!--
   function isFilled(f){
@@ -148,49 +206,52 @@ if (isset($_GET['display_mode']) && $_GET['display_mode'] == 1) {
 
   //-->
   </script>
-  <!-- This will do dark mode -->
-    <script language="Javascript" type="text/javascript">
-  
-  window.onload=function(){
 
-
-  const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-
-  if(toggleSwitch != null)
-  {
-	function switchTheme(e) {
-    if (e.target.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
+  <script language="Javascript" type="text/javascript">
+  <!--
+  function isFilled(f){
+    var L_Msg_Text='Please enter a Name and Subject.';
+    if (f.message_author.value == '' || f.message_subject.value == '') {
+      alert(L_Msg_Text);
+      return false;
+    } else {
+      disableForm(f);
+      return true;
     }
-    else {
-        document.documentElement.setAttribute('data-theme', 'light');
-    }    
-}
-
-toggleSwitch.addEventListener('change', switchTheme, false);
-  
-  function switchTheme(e) {
-    if (e.target.checked) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark'); //add this
-    }
-    else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light'); //add this
-    }    
-	}
   }
 
-const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
-
-if (currentTheme) {
-    document.documentElement.setAttribute('data-theme', currentTheme);
-
-    if (currentTheme === 'dark') {
-        toggleSwitch.checked = true;
+  function disableForm(theform) {
+    if (document.all || document.getElementById) {
+      for (i = 0; i < theform.length; i++) {
+	var tempobj = theform.elements[i];
+	if (tempobj.type.toLowerCase() == "submit" || tempobj.type.toLowerCase() == "reset")
+	  tempobj.disabled = true;
+      }
+      return true;
+    } else {
+      return false;
     }
-}
-}
+  }
+
+  function hidden_links(num) {
+    var hidden_links_text = "<table class='main'>";
+    for (i = 1; i < num.value; i++) {
+      hidden_links_text = hidden_links_text + "<tr><td width='100' align='right' valign='top'>Link URL: </td><td><input type='text' name='message_link_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr><tr><td align='right' valign='top'>Link Title: </td><td><input type='text' name='message_link_title[]' value='' size='50' maxlength='75' class='forminput' /></td></tr>";
+    }
+    hidden_links_text = hidden_links_text + "</table>\n";
+    document.getElementById('hidden_links_text').innerHTML = hidden_links_text;
+  }
+
+  function hidden_images(num) {
+    var hidden_images_text = "<table class='main'>";
+    for (i = 1; i < num.value; i++) {
+      hidden_images_text = hidden_images_text + "<tr><td width='100' align='right' valign='top'>Image URL: </td><td><input type='text' name='message_image_url[]' value='' placeholder='http://' size='50' maxlength='255' class='forminput' /></td></tr>";
+    }
+    hidden_images_text = hidden_images_text + "</table>\n";
+    document.getElementById('hidden_images_text').innerHTML = hidden_images_text;
+  }
+
+  //-->
   </script>
 
   <link rel="stylesheet" type="text/css" href="<?=$locations['css']?>" />
