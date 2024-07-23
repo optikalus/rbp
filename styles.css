@@ -207,6 +207,10 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.main input{
+	border: 1px solid Grey;
+}
+
 /* make sure we assign to everything */
 body,
 	.main,
