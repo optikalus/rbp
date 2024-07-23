@@ -50,7 +50,13 @@ else
 
 ?>
   <title>Search : <?=$config['title']?></title>
+	<script language="Javascript" type="text/javascript">
+	const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
 
+	if (currentTheme) {
+		document.documentElement.setAttribute('data-theme', currentTheme);
+	}
+	</script>
   <script language='JavaScript' type='text/javascript'>
   <!--
 

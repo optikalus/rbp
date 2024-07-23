@@ -43,6 +43,15 @@ if ($config[auth_required] == true) {
   <title><?=$config[title]?></title>
   <link rel="stylesheet" type="text/css" href="<?=$locations[css]?>">
 
+	<script language="Javascript" type="text/javascript">
+	const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+	if (currentTheme) {
+		document.documentElement.setAttribute('data-theme', currentTheme);
+	}
+	</script>
+
+
   <style type="text/css">
   img {
 	float: left;

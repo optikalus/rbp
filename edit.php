@@ -82,6 +82,14 @@ if ($config['auth_required'] == true || isset($_REQUEST['needauth'])) {
     <meta name="viewport" content="width=device-width, initial-scale=.5, shrink-to-fit=no">
     <title><?=$config['title']?></title>
 
+
+	<script language="Javascript" type="text/javascript">
+	const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+	if (currentTheme) {
+		document.documentElement.setAttribute('data-theme', currentTheme);
+	}
+	</script>
     <script language="Javascript" type="text/javascript">
         <!--
         function isFilled(f){
