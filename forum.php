@@ -876,7 +876,7 @@ function display_header() {
 	</div>
 	</td>
   </tr>
-  <tr class='main'>
+  <tr class='main' id="centerheader">
     <td class='menu'>
     <a href='#recent_messages'><b>Read Messages</b></a><br />
     <a href='#post_a_message'><b>Post a Message</b></a><br />
@@ -890,7 +890,7 @@ function display_header() {
 <?=$config['guidelines']?>
     </td>
   </tr>
-  <tr class='main'>
+  <tr class='main' id="centerheader">
     <td class='menu'>
       <!-- NEWS ITEMS -->
       <?=$config['newsitem']?>

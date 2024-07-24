@@ -221,3 +221,10 @@ body,
 		background-color: var(--bg);
 		color: var(--text);
 	}
+	
+/*phone portrait hide center header*/
+@media screen and (max-device-width: 1024px) and (orientation:portrait) {
+	#centerheader{
+		display:none ;
+	}
+}
